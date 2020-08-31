@@ -1,5 +1,6 @@
-package connectfour.core;
+package connectfour;
 
+import connectfour.core.Board;
 import connectfour.gui.Display;
 
 public class Driver 
