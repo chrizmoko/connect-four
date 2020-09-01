@@ -1,13 +1,10 @@
 package connectfour;
 
-import connectfour.core.Board;
-import connectfour.gui.Display;
-
 public class Driver 
 {
 	public static void main(String[] args)
 	{
-		Board b = new Board();
-		Display d = new Display(b);
+		Game control = new Game();
+		control.run();
 	}
 }

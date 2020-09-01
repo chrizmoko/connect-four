@@ -39,7 +39,10 @@ public class Display {
 		for (int r = 0; r < board.getRows(); r++) {
 			System.out.print("| ");
 			for (int c = 0; c < board.getColumns(); c++) {
-				System.out.print(getCellChar(board.getCellAt(r, c)) + " ");
+				try {
+					System.out.print(getCellChar(board.getCellAt(r, c)) + " ");
+				} catch(ConnectFourException e) {
+				}
 			}
 			System.out.println("|");
 		}
