@@ -35,6 +35,7 @@ public class Game {
 					gs.makeMove(sc.nextInt() - 1);
 					break;
 				} catch(Exception e) {
+					System.out.println(e.getMessage());
 				}
 			}
 
@@ -42,6 +43,7 @@ public class Game {
 			System.out.println();
 		}
 		
+		d.display();
 		try {
 			Cell winner = gs.getWinner();
 			String result = (winner == Cell.Red) ? "Red" : "Yellow";

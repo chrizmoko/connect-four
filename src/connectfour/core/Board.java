@@ -3,13 +3,13 @@ package connectfour.core;
 public class Board 
 {
 	private int rows, cols;
-	private int matchLength;
+	private int matches;
 	private Cell[][] board;
 	
 	public Board() {
 		rows = 6;
 		cols = 7;
-		matchLength = 4;
+		matches = 4;
 		board = new Cell[rows][cols];
 		
 		for (int r = 0; r < rows; r++) {
@@ -22,7 +22,7 @@ public class Board
 	public Board(Board copy) {
 		rows = copy.rows;
 		cols = copy.cols;
-		matchLength = copy.matchLength;
+		matches = copy.matches;
 		board = new Cell[rows][cols];
 		
 		for (int r = 0; r < rows; r++) {
@@ -71,8 +71,8 @@ public class Board
 	}
 	
 	public boolean hasConnectFour() {
-		return (hasConnectFourHorizontal(matchLength) || hasConnectFourVertical(matchLength) ||
-				hasConnectFourPositiveDiagonal(matchLength) || hasConnectFourNegativeDiagonal(matchLength));
+		return (hasConnectFourHorizontal(matches) || hasConnectFourVertical(matches) ||
+				hasConnectFourPositiveDiagonal(matches) || hasConnectFourNegativeDiagonal(matches));
 	}
 	
 	public int getRows() {
@@ -85,13 +85,18 @@ public class Board
 	
 	private boolean hasConnectFourHorizontal(int matchLength) {
 		for (int r = 0; r < rows; r++) {
-			int count = 0;
+			int matchCount = 0;
 			for (int c = 0; c < cols - 1; c++) {
+				// Check for matching continuity among the same non-empty cells
 				if (board[r][c] != Cell.Empty && board[r][c] == board[r][c+1]) {
-					count++;
-					if (count == matchLength - 1) {
-						return true;
-					}
+					matchCount++;
+				} else {
+					matchCount = 0;
+				}
+				
+				// Check if there has been a match of certain length
+				if (matchCount == matchLength - 1) {
+					return true;
 				}
 			}
 		}
@@ -100,13 +105,18 @@ public class Board
 	
 	private boolean hasConnectFourVertical(int matchLength) {
 		for (int c = 0; c < cols; c++) {
-			int count = 0;
+			int matchCount = 0;
 			for (int r = 0; r < rows - 1; r++) {
+				// Check for matching continuity among the same non-empty cells
 				if (board[r][c] != Cell.Empty && board[r][c] == board[r+1][c]) {
-					count++;
-					if (count == matchLength - 1) {
-						return true;
-					}
+					matchCount++;
+				} else {
+					matchCount = 0;
+				}
+				
+				// Check if there has been a match of certain length
+				if (matchCount == matchLength - 1) {
+					return true;
 				}
 			}
 		}
@@ -114,16 +124,20 @@ public class Board
 	}
 	
 	private boolean hasConnectFourPositiveDiagonal(int matchLength) {
-		for (int r = 0; r < rows - matchLength + 1; r++) {
+		for (int r = matchLength - 1; r < rows; r++) {
 			for (int c = 0; c < cols - matchLength + 1; c++) {
-				int count = 0;
+				// Manually check for a connection at each new position
+				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r+i][cols-i-1] != Cell.Empty && board[r+i][cols-i-1] == board[r+i+1][cols-i-2]) {
-						count++;
+					if (board[r][c] == Cell.Empty || board[r-i][c+i] != board[r-i-1][c+i+1]) {
+						matches = false;
+						break;
 					}
 				}
-				if (count == matchLength - 1) {
-					return true;
+				
+				// Return if there has been a complete match
+				if (matches) {
+					return matches;
 				}
 			}
 		}
@@ -133,14 +147,18 @@ public class Board
 	private boolean hasConnectFourNegativeDiagonal(int matchLength) {
 		for (int r = 0; r < rows - matchLength + 1; r++) {
 			for (int c = 0; c < cols - matchLength + 1; c++) {
-				int count = 0;
+				// Manually check for a connection at each new position
+				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r+i][c+i] != Cell.Empty && board[r+i][c+i] == board[r+i+1][c+i+1]) {
-						count++;
+					if (board[r][c] == Cell.Empty || board[r+i][c+i] != board[r+i+1][c+i+1]) {
+						matches = false;
+						break;
 					}
 				}
-				if (count == matchLength - 1) {
-					return true;
+				
+				// Return if there has been a complete match
+				if (matches) {
+					return matches;
 				}
 			}
 		}

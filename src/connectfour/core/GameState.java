@@ -78,7 +78,6 @@ public class GameState {
 		// Check for a connect four
 		if (board.hasConnectFour()) {
 			gameOver = true;
-			System.out.println();
 			return;
 		}
 		
