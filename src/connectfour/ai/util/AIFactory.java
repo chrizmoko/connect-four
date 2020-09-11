@@ -1,4 +1,4 @@
-package connectfour.ai;
+package connectfour.ai.util;
 
 import java.util.*;
 

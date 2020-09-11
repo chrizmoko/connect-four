@@ -1,4 +1,4 @@
-package connectfour.ai;
+package connectfour.ai.util;
 
 public class AIFactoryException extends Exception {
 	public static final long serialVersionUID = 1L;
