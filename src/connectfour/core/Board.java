@@ -12,11 +12,16 @@ public class Board
 		matches = 4;
 		board = new Cell[rows][cols];
 		
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
-				board[r][c] = Cell.Empty;
-			}
-		}
+		fillBoard(Cell.Empty);
+	}
+	
+	public Board(int r, int c) {
+		rows = r;
+		cols = c;
+		matches = 4;
+		board = new Cell[rows][cols];
+		
+		fillBoard(Cell.Empty);
 	}
 	
 	public Board(Board copy) {
@@ -81,6 +86,14 @@ public class Board
 	
 	public int getColumns() {
 		return cols;
+	}
+	
+	private void fillBoard(Cell cell) {
+		for (int r = 0; r < rows; r++) {
+			for (int c = 0; c < cols; c++) {
+				board[r][c] = cell;
+			}
+		}
 	}
 	
 	private boolean hasConnectFourHorizontal(int matchLength) {

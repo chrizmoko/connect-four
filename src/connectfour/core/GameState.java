@@ -15,6 +15,15 @@ public class GameState {
 		turns = 1;
 	}
 	
+	public GameState(Board b) {
+		board = b;
+		currentColor = Cell.Red;
+		gameOver = false;
+		numRed = 0;
+		numYellow = 0;
+		turns = 1;
+	}
+	
 	public GameState(GameState copy) {
 		board = new Board(copy.board);
 		currentColor = copy.currentColor;
