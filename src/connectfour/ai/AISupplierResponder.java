@@ -1,8 +1,8 @@
 package connectfour.ai;
 
-public class AIClassLoaderResponder {
+public class AISupplierResponder {
 	public static String getPackageName() {
-		return AIClassLoaderResponder.class.getPackageName();
+		return AISupplierResponder.class.getPackageName();
 	}
 	
 	public static String getPackagePath() {
