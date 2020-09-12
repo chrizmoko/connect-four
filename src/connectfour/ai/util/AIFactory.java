@@ -29,7 +29,7 @@ public class AIFactory {
 		return names;
 	}
 	
-	public AI getAI(String name) throws AIFactoryException {
+	public AbstractAI getAI(String name) throws AIFactoryException {
 		if (!suppliers.containsKey(name)) {
 			throw new AIFactoryException("A supplier under the name " + name + " does not exist.");
 		}

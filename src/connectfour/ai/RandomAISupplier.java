@@ -1,10 +1,10 @@
 package connectfour.ai;
 
-import connectfour.ai.util.AI;
+import connectfour.ai.util.AbstractAI;
 import connectfour.ai.util.AISupplier;
 
 public class RandomAISupplier implements AISupplier {
-	public AI get() {
+	public AbstractAI get() {
 		return new RandomAI();
 	}
 	

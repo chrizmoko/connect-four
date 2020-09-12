@@ -1,6 +1,6 @@
 package connectfour.ai.util;
 
 public interface AISupplier {
-	public AI get();
+	public AbstractAI get();
 	public String getAIName();
 }

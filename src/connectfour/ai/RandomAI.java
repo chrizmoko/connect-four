@@ -1,9 +1,9 @@
 package connectfour.ai;
 
-import connectfour.ai.util.AI;
+import connectfour.ai.util.AbstractAI;
 import connectfour.core.GameState;
 
-public class RandomAI extends AI {
+public class RandomAI extends AbstractAI {
 	public RandomAI() {
 		super();
 	}
