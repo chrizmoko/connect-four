@@ -2,25 +2,25 @@ package connectfour.gui;
 
 import connectfour.core.*;
 
-public class Display {
+public class DisplayText {
 	private Board board;
 	private char red, yellow, empty;
 	
-	public Display(Board b) {
+	public DisplayText(Board b) {
 		board = b;
 		red = 'r';
 		yellow = 'y';
 		empty = ' ';
 	}
 	
-	public Display(Board b, char rChar, char yChar, char eChar) {
+	public DisplayText(Board b, char rChar, char yChar, char eChar) {
 		board = b;
 		red = rChar;
 		yellow = yChar;
 		empty = eChar;
 	}
 	
-	public Display(Display copy) {
+	public DisplayText(DisplayText copy) {
 		board = copy.board;
 		red = copy.red;
 		yellow = copy.yellow;
