@@ -11,4 +11,8 @@ public class OneColumnAISupplier implements AISupplier {
 	public String getAIName() {
 		return "First Column Only AI";
 	}
+	
+	public String getAIDescription() {
+		return "Only drops chips into the first column of the board.";
+	}
 }

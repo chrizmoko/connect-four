@@ -11,4 +11,8 @@ public class RandomAISupplier implements AISupplier {
 	public String getAIName() {
 		return "Random Column AI";
 	}
+	
+	public String getAIDescription() {
+		return "Randomly drops chips into any column of the board.";
+	}
 }
