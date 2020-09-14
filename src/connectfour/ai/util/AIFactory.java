@@ -19,7 +19,7 @@ public class AIFactory {
 		suppliers.remove(name);
 	}
 	
-	public String[] getRegisteredNames() {
+	public static String[] getRegisteredNames() {
 		String[] names = new String[suppliers.size()];
 		int index = 0;
 		for (String val : suppliers.keySet()) {
@@ -29,7 +29,7 @@ public class AIFactory {
 		return names;
 	}
 	
-	public AbstractAI getAI(String name) throws AIFactoryException {
+	public static AbstractAI getAI(String name) throws AIFactoryException {
 		if (!suppliers.containsKey(name)) {
 			throw new AIFactoryException("A supplier under the name " + name + " does not exist.");
 		}
