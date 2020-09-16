@@ -10,73 +10,85 @@ import java.awt.*;
 public class ActionPanel extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
-	JButton gameButton;
-	JPanel select;
-	JLabel label1, label2;
-	JComboBox<String> aiList1, aiList2;
+	private JPanel buttonPanel, playerPanel;
+	private JButton startButton, endButton;
+	private JLabel label1, label2;
+	private JComboBox<String> playerList1, playerList2;
 	
-	public ActionPanel(String[] aiNames) {
+	public ActionPanel() {
 		super();
 		
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		//setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+		setLayout(new GridLayout(2, 1));
 		
-		gameButton = new JButton("New Game");
-		gameButton.setAlignmentX(CENTER_ALIGNMENT);
-		add(gameButton);
+		// Panel for game managing buttons
+		buttonPanel = new JPanel();
+		buttonPanel.setBorder(BorderFactory.createTitledBorder("Game Control"));
+		buttonPanel.setLayout(new FlowLayout());
 		
-		// Player selection
-		select = new JPanel();
-		select.setBorder(BorderFactory.createTitledBorder("Set Players"));
-		GroupLayout selectLayout = new GroupLayout(select);
-		selectLayout.setAutoCreateGaps(true);
-		selectLayout.setAutoCreateContainerGaps(true);
-		select.setLayout(selectLayout);
+		startButton = new JButton("New Game");
+		startButton.setAlignmentX(CENTER_ALIGNMENT);
+		startButton.setToolTipText("Create a new Connect Four game.");
+		buttonPanel.add(startButton);
+		
+		endButton = new JButton("End Game");
+		endButton.setAlignmentX(CENTER_ALIGNMENT);
+		endButton.setToolTipText("End the current Connect Four game.");
+		buttonPanel.add(endButton);
+		
+		add(buttonPanel);
+		
+		// Panel for player selection
+		playerPanel = new JPanel();
+		playerPanel.setBorder(BorderFactory.createTitledBorder("Set Players"));
+		GroupLayout playerLayout = new GroupLayout(playerPanel);
+		playerLayout.setAutoCreateGaps(true);
+		playerLayout.setAutoCreateContainerGaps(true);
+		playerPanel.setLayout(playerLayout);
 		
 		label1 = new JLabel("Player 1:");
 		label2 = new JLabel("Player 2:");
 		
-		aiList1 = new JComboBox<>(aiNames);
-		aiList1.setMaximumRowCount(5);
-		aiList1.setPopupVisible(false);
+		playerList1 = new JComboBox<>();
+		playerList1.setMaximumRowCount(5);
+		playerList1.setToolTipText("Choose whether Player 1 should be played by a human or an AI.");
 		
-		aiList2 = new JComboBox<>(aiNames);
-		aiList2.setMaximumRowCount(5);
+		playerList2 = new JComboBox<>();
+		playerList2.setMaximumRowCount(5);
+		playerList2.setToolTipText("Choose whether Player 2 should be played by a human or an AI.");
 		
-		GroupLayout.SequentialGroup hGroup = selectLayout.createSequentialGroup();
-		hGroup.addGroup(selectLayout.createParallelGroup().
+		GroupLayout.SequentialGroup hGroup = playerLayout.createSequentialGroup();
+		hGroup.addGroup(playerLayout.createParallelGroup().
 				addComponent(label1).
 				addComponent(label2));
-		hGroup.addGroup(selectLayout.createParallelGroup().
-				addComponent(aiList1).
-				addComponent(aiList2));
-		selectLayout.setHorizontalGroup(hGroup);
+		hGroup.addGroup(playerLayout.createParallelGroup().
+				addComponent(playerList1, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE).
+				addComponent(playerList2, GroupLayout.PREFERRED_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE));
+		playerLayout.setHorizontalGroup(hGroup);
 		
-		GroupLayout.SequentialGroup vGroup = selectLayout.createSequentialGroup();
-		vGroup.addGroup(selectLayout.createParallelGroup(Alignment.BASELINE).
+		GroupLayout.SequentialGroup vGroup = playerLayout.createSequentialGroup();
+		vGroup.addGroup(playerLayout.createParallelGroup(Alignment.BASELINE).
 				addComponent(label1).
-				addComponent(aiList1));
-		vGroup.addGroup(selectLayout.createParallelGroup(Alignment.BASELINE).
+				addComponent(playerList1));
+		vGroup.addGroup(playerLayout.createParallelGroup(Alignment.BASELINE).
 				addComponent(label2).
-				addComponent(aiList2));
-		selectLayout.setVerticalGroup(vGroup);
+				addComponent(playerList2));
+		playerLayout.setVerticalGroup(vGroup);
 		
-		add(select);
-		
-		aiList1.setPrototypeDisplayValue(aiNames[0]);
-		System.out.println(aiList1.getPrototypeDisplayValue());
+		add(playerPanel);
 	}
 	
-	@Override
-	public void paint(Graphics g) {
-		System.out.println(getWidth() + " " + getHeight());
-		super.paint(g);
+	public void setPlayerAIOptions(String[] aiNames) {
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(aiNames);
+		playerList1.setModel(model);
+		playerList2.setModel(model);
 	}
 	
-	public String getList1Selection() {
-		return (String)aiList1.getSelectedItem();
+	public String getPlayerOneAI() {
+		return (String)playerList1.getSelectedItem();
 	}
 	
-	public String getList2Selection() {
-		return (String)aiList2.getSelectedItem();
+	public String getPlayerTwoAI() {
+		return (String)playerList2.getSelectedItem();
 	}
 }

@@ -12,50 +12,53 @@ public class Display {
 	private static Dimension initSize = new Dimension(640, 480);
 	
 	private JFrame frame;
-	private BoardPanel visual;
+	private BoardPanel visuals;
 	private ActionPanel actions;
 	
-	public Display(Board board, String[] aiNames) {
+	public Display(Board b) {
 		// JFrame modifications
 		frame = new JFrame("Connect Four");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setLocationByPlatform(true);
+		frame.setPreferredSize(initSize);
 		frame.setMinimumSize(initSize);
 		
 		Border border = BorderFactory.createEmptyBorder(8, 8, 8, 8);
-		//Border border = BorderFactory.createLineBorder(Color.RED, 4);
 		
 		// Connect four board panel modifications
-		visual = new BoardPanel(board);
-		visual.setMinimumSize(new Dimension((int)(initSize.width * 0.3f), initSize.height));
-		visual.setBorder(border);
+		Dimension panelSize = new Dimension((int)(initSize.width * 0.4), initSize.height);
+		
+		visuals = new BoardPanel(b);
+		visuals.setPreferredSize(panelSize);
+		visuals.setMinimumSize(panelSize);
+		visuals.setBorder(border);
 
 		// Action panel modifications
-		actions = new ActionPanel(aiNames);
-		actions.setMinimumSize(new Dimension((int)(initSize.width * 0.3f), initSize.height));
+		actions = new ActionPanel();
+		actions.setPreferredSize(panelSize);
+		actions.setMinimumSize(panelSize);
 		actions.setBorder(border);
 		
 		// Add connect four and action panel to split panes
-		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, visual, actions);
+		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, visuals, actions);
 		split.setContinuousLayout(true);
 		split.setResizeWeight(1.0);
 		
 		frame.add(split);
 		frame.pack();
 		
-		split.setDividerLocation(0.6);
+		split.setDividerLocation(0.5);
 	}
 	
 	public void setVisible(boolean state) {
 		frame.setVisible(state);
 	}
 	
-	public String getPlayerOneAIName() {
-		return actions.getList1Selection();
+	public BoardPanel getBoardPanel() {
+		return visuals;
 	}
 	
-	public String getPlayerTwoAIName() {
-		// TODO: Needs to be implemented
-		return actions.getList2Selection();
+	public ActionPanel getActionPanel() {
+		return actions;
 	}
 }
