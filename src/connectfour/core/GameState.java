@@ -61,11 +61,7 @@ public class GameState {
 	}
 	
 	public boolean isValidMove(int col) {
-		try {
-			return board.getCellAt(0, col) == Cell.Empty;
-		} catch (ConnectFourException e) {
-			return false;
-		}
+		return board.getCellAt(0, col) == Cell.Empty;
 	}
 	
 	public void makeMove(int col) throws ConnectFourException {
@@ -73,7 +69,7 @@ public class GameState {
 			throw new ConnectFourException("The game has completed, cannot make further moves.");
 		}
 		if (col < 0 || col >= board.getColumns()) {
-			throw new ConnectFourException("Column value is out of board boundaries.");
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
 		
 		// Select chip color

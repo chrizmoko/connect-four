@@ -37,32 +37,32 @@ public class Board
 		}
 	}
 	
-	public void setCellAt(Cell cell, int row, int col) throws ConnectFourException {
+	public void setCellAt(Cell cell, int row, int col) {
 		if (row < 0 || row >= rows) {
-			throw new ConnectFourException("Row value is out of board boundaries.");
+			throw new IllegalArgumentException("Row value is out of board boundaries.");
 		}
 		if (col < 0 || col >= cols) {
-			throw new ConnectFourException("Column value is out of board boundaries.");
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
 		board[row][col] = cell;
 	}
 	
-	public Cell getCellAt(int row, int col) throws ConnectFourException {
+	public Cell getCellAt(int row, int col) {
 		if (row < 0 || row >= rows) {
-			throw new ConnectFourException("Row value is out of board boundaries.");
+			throw new IllegalArgumentException("Row value is out of board boundaries.");
 		}
 		if (col < 0 || col >= cols) {
-			throw new ConnectFourException("Column value is out of board boundaries.");
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
 		return board[row][col];
 	}
 	
-	public boolean dropChip(Cell chip, int col) throws ConnectFourException {
+	public boolean dropChip(Cell chip, int col) {
 		if (chip == Cell.Empty) {
-			throw new ConnectFourException("An empty chip cannot be dropped into the board.");
+			throw new IllegalArgumentException("An empty chip cannot be dropped into the board.");
 		}
 		if (col < 0 || col >= cols) {
-			throw new ConnectFourException("Column value is out of board boundaries.");
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
 		
 		// Search upwards from bottom of column until empty slot is found
