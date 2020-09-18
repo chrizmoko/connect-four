@@ -20,13 +20,11 @@ public class AIFactory {
 	}
 	
 	public static String[] getRegisteredNames() {
-		String[] names = new String[suppliers.size()];
-		int index = 0;
-		for (String val : suppliers.keySet()) {
-			names[index] = val;
-			index++;
-		}
+		String[] names = suppliers.keySet().toArray(String[]::new);
+		Arrays.sort(names, (s1, s2) -> s1.compareTo(s2));
+		Arrays.sort(names, (s1, s2) -> (s1.toLowerCase()).compareTo(s2.toLowerCase()));
 		return names;
+		//return names;
 	}
 	
 	public static AbstractAI getAI(String name) throws AIFactoryException {
