@@ -8,7 +8,7 @@ public class GameState {
 	
 	public GameState() {
 		board = new Board();
-		currentColor = Cell.Red;
+		currentColor = Cell.RED;
 		gameOver = false;
 		numRed = 0;
 		numYellow = 0;
@@ -17,7 +17,7 @@ public class GameState {
 	
 	public GameState(Board b) {
 		board = b;
-		currentColor = Cell.Red;
+		currentColor = Cell.RED;
 		gameOver = false;
 		numRed = 0;
 		numYellow = 0;
@@ -42,11 +42,11 @@ public class GameState {
 	}
 	
 	public boolean isRedTurn() {
-		return currentColor == Cell.Red;
+		return currentColor == Cell.RED;
 	}
 	
 	public boolean isYellowTurn() {
-		return currentColor == Cell.Yellow;
+		return currentColor == Cell.YELLOW;
 	}
 	
 	public boolean isGameOver() {
@@ -61,7 +61,7 @@ public class GameState {
 	}
 	
 	public boolean isValidMove(int col) {
-		return board.getCellAt(0, col) == Cell.Empty;
+		return board.getCellAt(0, col) == Cell.EMPTY;
 	}
 	
 	public void makeMove(int col) throws ConnectFourException {
@@ -73,7 +73,7 @@ public class GameState {
 		}
 		
 		// Select chip color
-		Cell chip = (currentColor == Cell.Red) ? Cell.Red : Cell.Yellow;
+		Cell chip = (currentColor == Cell.RED) ? Cell.RED : Cell.YELLOW;
 		
 		// Drop chip into the given column if possible
 		if (!board.dropChip(chip, col)) {
@@ -87,12 +87,12 @@ public class GameState {
 		}
 		
 		// Update game state attributes
-		if (chip == Cell.Red) { 
+		if (chip == Cell.RED) { 
 			numRed++;
-			currentColor = Cell.Yellow;
+			currentColor = Cell.YELLOW;
 		} else {
 			numYellow++;
-			currentColor = Cell.Red;
+			currentColor = Cell.RED;
 		}
 		turns++;
 	}

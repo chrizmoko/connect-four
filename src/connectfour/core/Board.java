@@ -12,7 +12,7 @@ public class Board
 		matches = 4;
 		board = new Cell[rows][cols];
 		
-		fillBoard(Cell.Empty);
+		fillBoard(Cell.EMPTY);
 	}
 	
 	public Board(int r, int c) {
@@ -21,7 +21,7 @@ public class Board
 		matches = 4;
 		board = new Cell[rows][cols];
 		
-		fillBoard(Cell.Empty);
+		fillBoard(Cell.EMPTY);
 	}
 	
 	public Board(Board copy) {
@@ -58,7 +58,7 @@ public class Board
 	}
 	
 	public boolean dropChip(Cell chip, int col) {
-		if (chip == Cell.Empty) {
+		if (chip == Cell.EMPTY) {
 			throw new IllegalArgumentException("An empty chip cannot be dropped into the board.");
 		}
 		if (col < 0 || col >= cols) {
@@ -67,7 +67,7 @@ public class Board
 		
 		// Search upwards from bottom of column until empty slot is found
 		for (int r = rows - 1; r >= 0; r--) {
-			if (board[r][col] == Cell.Empty) {
+			if (board[r][col] == Cell.EMPTY) {
 				board[r][col] = chip;
 				return true;
 			}
@@ -101,7 +101,7 @@ public class Board
 			int matchCount = 0;
 			for (int c = 0; c < cols - 1; c++) {
 				// Check for matching continuity among the same non-empty cells
-				if (board[r][c] != Cell.Empty && board[r][c] == board[r][c+1]) {
+				if (board[r][c] != Cell.EMPTY && board[r][c] == board[r][c+1]) {
 					matchCount++;
 				} else {
 					matchCount = 0;
@@ -121,7 +121,7 @@ public class Board
 			int matchCount = 0;
 			for (int r = 0; r < rows - 1; r++) {
 				// Check for matching continuity among the same non-empty cells
-				if (board[r][c] != Cell.Empty && board[r][c] == board[r+1][c]) {
+				if (board[r][c] != Cell.EMPTY && board[r][c] == board[r+1][c]) {
 					matchCount++;
 				} else {
 					matchCount = 0;
@@ -142,7 +142,7 @@ public class Board
 				// Manually check for a connection at each new position
 				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r][c] == Cell.Empty || board[r-i][c+i] != board[r-i-1][c+i+1]) {
+					if (board[r][c] == Cell.EMPTY || board[r-i][c+i] != board[r-i-1][c+i+1]) {
 						matches = false;
 						break;
 					}
@@ -163,7 +163,7 @@ public class Board
 				// Manually check for a connection at each new position
 				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r][c] == Cell.Empty || board[r+i][c+i] != board[r+i+1][c+i+1]) {
+					if (board[r][c] == Cell.EMPTY || board[r+i][c+i] != board[r+i+1][c+i+1]) {
 						matches = false;
 						break;
 					}
