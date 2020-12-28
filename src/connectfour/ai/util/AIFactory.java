@@ -24,7 +24,6 @@ public class AIFactory {
 		Arrays.sort(names, (s1, s2) -> s1.compareTo(s2));
 		Arrays.sort(names, (s1, s2) -> (s1.toLowerCase()).compareTo(s2.toLowerCase()));
 		return names;
-		//return names;
 	}
 	
 	public static AbstractAI getAI(String name) throws AIFactoryException {
