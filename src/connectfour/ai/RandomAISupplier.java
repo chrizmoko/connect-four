@@ -16,6 +16,6 @@ public class RandomAISupplier implements AISupplier {
 	
 	@Override
 	public String getAIDescription() {
-		return "Randomly drops chips into any column of the board.";
+		return "Randomly drops chips into any empty column of the board.";
 	}
 }
