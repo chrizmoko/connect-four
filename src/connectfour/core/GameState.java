@@ -53,9 +53,16 @@ public class GameState {
 		return gameOver;
 	}
 	
+	public boolean isGameDraw() {
+		return gameOver && (numRed + numYellow == board.getRows() * board.getColumns());
+	}
+	
 	public Cell getWinner() throws ConnectFourException {
 		if (!gameOver) {
 			throw new ConnectFourException("The game is in progress, there is no winner yet.");
+		}
+		if (numRed + numYellow == board.getRows() * board.getColumns()) {
+			throw new ConnectFourException("The game completed in a draw, there is no winner.");
 		}
 		return currentColor;
 	}
@@ -80,8 +87,8 @@ public class GameState {
 			throw new ConnectFourException("Cannot drop chip into full column.");
 		}
 		
-		// Check for a connect four
-		if (board.hasConnectFour()) {
+		// Check if the game has completed (either with a connect four or a draw)
+		if (board.hasConnectFour() || numRed + numYellow == board.getRows() * board.getColumns()) {
 			gameOver = true;
 			return;
 		}
