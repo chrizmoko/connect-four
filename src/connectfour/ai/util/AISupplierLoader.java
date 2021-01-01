@@ -4,12 +4,22 @@ import java.util.*;
 import java.io.*;
 
 public class AISupplierLoader {
-	private static final String PACKAGE_NAME = "connectfour.ai";
 	private static final String CLASS_EXTENSION = ".class";
+	private static final AbstractList<String> packageNames = new ArrayList<>();
 	private static final AbstractSet<Class<AISupplier>> loadedSuppliers = new HashSet<>();
 	
+	public static void addPackageName(String packageName) {
+		packageNames.add(packageName);
+	}
+	
+	public static void removePackageName(String packageName) {
+		packageNames.remove(packageName);
+	}
+	
 	public static void findClasses() throws Exception {
-		findClasses(PACKAGE_NAME);
+		for (String name : packageNames) {
+			findClasses(name);
+		}
 	}
 	
 	public static void findClasses(String packageName) throws Exception {
@@ -31,6 +41,10 @@ public class AISupplierLoader {
 				}
 			}
 		}
+	}
+	
+	public static void resetClasses() {
+		loadedSuppliers.removeAll(loadedSuppliers);
 	}
 	
 	public static Collection<Class<AISupplier>> getSupplierClasses() {
