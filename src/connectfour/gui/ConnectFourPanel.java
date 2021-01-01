@@ -11,7 +11,7 @@ public class ConnectFourPanel extends JPanel {
 	private JPanel controlPanel;
 	private JPanel playerPanel;
 	private JPanel boardPanel;
-	private JPanel statusPanel;
+	private JPanel closePanel;
 	
 	private GameController controller;
 	
@@ -30,8 +30,8 @@ public class ConnectFourPanel extends JPanel {
 		boardPanel = buildBoardPanel();
 		add(boardPanel);
 		
-		statusPanel = buildStatusPanel();
-		add(statusPanel);
+		closePanel = buildStatusPanel();
+		add(closePanel);
 		
 		// Panel arrangement
 		SpringLayout layout = new SpringLayout();
@@ -88,21 +88,21 @@ public class ConnectFourPanel extends JPanel {
 		layout.putConstraint(
 			SpringLayout.SOUTH, boardPanel,
 			-outerPadding, 
-			SpringLayout.NORTH, statusPanel
+			SpringLayout.NORTH, closePanel
 		);
 		
 		layout.putConstraint(
-			SpringLayout.WEST, statusPanel, 
+			SpringLayout.WEST, closePanel, 
 			outerPadding, 
 			SpringLayout.WEST, this
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, statusPanel, 
+			SpringLayout.EAST, closePanel, 
 			-outerPadding,
 			SpringLayout.WIDTH, this
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, statusPanel, 
+			SpringLayout.SOUTH, closePanel, 
 			-outerPadding, 
 			SpringLayout.SOUTH, this
 		);
@@ -126,12 +126,12 @@ public class ConnectFourPanel extends JPanel {
 		
 		controller = new GameController(player1, player2);
 		
-		ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+		ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 		canvas.updateModel(controller.getGameState().getBoard());
 		canvas.repaint();
 		
-		((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
-		((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+		((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+		((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
 	}
 	
 	public JPanel getControlPanel() {
@@ -146,8 +146,8 @@ public class ConnectFourPanel extends JPanel {
 		return boardPanel;
 	}
 	
-	public JPanel getStatusPanel() {
-		return statusPanel;
+	public JPanel getClosePanel() {
+		return closePanel;
 	}
 	
 	private JPanel buildControlPanel() {
@@ -164,12 +164,12 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				controller.moveToStart();
 				
-				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
-				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
-				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
 			}
 		});
 		basePanel.add(prevFarButton);
@@ -185,12 +185,12 @@ public class ConnectFourPanel extends JPanel {
 				
 				controller.moveBackwards();
 				
-				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
-				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
-				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
 			}
 		});
 		basePanel.add(prevButton);
@@ -206,12 +206,12 @@ public class ConnectFourPanel extends JPanel {
 				
 				controller.moveForwards();
 				
-				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
-				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
-				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
 			}
 		});
 		basePanel.add(nextButton);
@@ -222,12 +222,12 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				controller.moveToEnd();
 				
-				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
-				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
-				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
 			}
 		});
 		basePanel.add(nextFarButton);
@@ -379,9 +379,13 @@ public class ConnectFourPanel extends JPanel {
 		ConnectFourCanvas canvas = new ConnectFourCanvas();
 		basePanel.add(canvas);
 		
+		JLabel messageLabel = new JLabel();
+		basePanel.add(messageLabel);
+		
 		// Component arrangement
 		SpringLayout layout = new SpringLayout();
 		int outerPadding = 0;
+		int innerPadding = 8;
 		
 		layout.putConstraint(
 			SpringLayout.NORTH, canvas, 
@@ -399,9 +403,19 @@ public class ConnectFourPanel extends JPanel {
 			SpringLayout.WIDTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, 
+			SpringLayout.SOUTH, canvas, 
+			-innerPadding,
+			SpringLayout.NORTH, messageLabel
+		);
+		layout.putConstraint(
+			SpringLayout.WEST, messageLabel,
 			outerPadding,
-			SpringLayout.SOUTH, canvas
+			SpringLayout.WEST, basePanel
+		);
+		layout.putConstraint(
+			SpringLayout.SOUTH, messageLabel,
+			-outerPadding,
+			SpringLayout.SOUTH, basePanel
 		);
 		
 		basePanel.setLayout(layout);
@@ -411,10 +425,7 @@ public class ConnectFourPanel extends JPanel {
 	private JPanel buildStatusPanel() {
 		// Message label to the player and close button
 		JPanel basePanel = new JPanel();
-		
-		JLabel statusLabel = new JLabel("[default text]");
-		basePanel.add(statusLabel);
-		
+
 		JButton closeButton = new JButton("Close");
 		closeButton.addActionListener(new ActionListener() {
 			@Override
@@ -431,25 +442,9 @@ public class ConnectFourPanel extends JPanel {
 		int innerPadding = 8;
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, statusLabel,
+			SpringLayout.NORTH, closeButton, 
 			outerPadding,
 			SpringLayout.NORTH, basePanel
-		);
-		layout.putConstraint(
-			SpringLayout.WEST, statusLabel, 
-			outerPadding,
-			SpringLayout.WEST, basePanel
-		);
-		layout.putConstraint(
-			SpringLayout.EAST, statusLabel,
-			-outerPadding,
-			SpringLayout.WIDTH, basePanel
-		);
-		
-		layout.putConstraint(
-			SpringLayout.NORTH, closeButton, 
-			innerPadding,
-			SpringLayout.SOUTH, statusLabel
 		);
 		layout.putConstraint(
 			SpringLayout.EAST, closeButton,
