@@ -1,5 +1,6 @@
 package connectfour.gui;
 
+import connectfour.ai.util.*;
 import connectfour.core.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -12,7 +13,9 @@ public class ConnectFourPanel extends JPanel {
 	private JPanel boardPanel;
 	private JPanel statusPanel;
 	
-	public ConnectFourPanel(JFrame root) {
+	private GameController controller;
+	
+	public ConnectFourPanel(JFrame root, String player1Name, String player2Name) {
 		super();
 		
 		rootWindow = root;
@@ -36,49 +39,99 @@ public class ConnectFourPanel extends JPanel {
 		int innerPadding = 8;
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, controlPanel, outerPadding, SpringLayout.NORTH, this
+			SpringLayout.NORTH, controlPanel, 
+			outerPadding, 
+			SpringLayout.NORTH, this
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, controlPanel, outerPadding, SpringLayout.WEST, this
+			SpringLayout.WEST, controlPanel,
+			outerPadding, 
+			SpringLayout.WEST, this
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, controlPanel, -outerPadding, SpringLayout.WIDTH, this
-		);
-		
-		layout.putConstraint(
-			SpringLayout.NORTH, playerPanel, innerPadding, SpringLayout.SOUTH, controlPanel
-		);
-		layout.putConstraint(
-			SpringLayout.WEST, playerPanel, outerPadding, SpringLayout.WEST, this
-		);
-		layout.putConstraint(
-			SpringLayout.EAST, playerPanel, -outerPadding, SpringLayout.WIDTH, this
+			SpringLayout.EAST, controlPanel,
+			-outerPadding, 
+			SpringLayout.WIDTH, this
 		);
 		
 		layout.putConstraint(
-			SpringLayout.NORTH,	boardPanel, innerPadding, SpringLayout.SOUTH, playerPanel
+			SpringLayout.NORTH, playerPanel, 
+			innerPadding, 
+			SpringLayout.SOUTH, controlPanel
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, boardPanel, outerPadding, SpringLayout.WEST, this
+			SpringLayout.WEST, playerPanel,
+			outerPadding,
+			SpringLayout.WEST, this
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, boardPanel, -outerPadding, SpringLayout.WIDTH, this
-		);
-		layout.putConstraint(
-			SpringLayout.SOUTH, boardPanel, -outerPadding, SpringLayout.NORTH, statusPanel
+			SpringLayout.EAST, playerPanel, 
+			-outerPadding,
+			SpringLayout.WIDTH, this
 		);
 		
 		layout.putConstraint(
-			SpringLayout.WEST, statusPanel, outerPadding, SpringLayout.WEST, this
+			SpringLayout.NORTH,	boardPanel,
+			innerPadding, 
+			SpringLayout.SOUTH, playerPanel
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, statusPanel, -outerPadding, SpringLayout.WIDTH, this
+			SpringLayout.WEST, boardPanel,
+			outerPadding, 
+			SpringLayout.WEST, this
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, statusPanel, -outerPadding, SpringLayout.SOUTH, this
+			SpringLayout.EAST, boardPanel, 
+			-outerPadding, 
+			SpringLayout.WIDTH, this
+		);
+		layout.putConstraint(
+			SpringLayout.SOUTH, boardPanel,
+			-outerPadding, 
+			SpringLayout.NORTH, statusPanel
+		);
+		
+		layout.putConstraint(
+			SpringLayout.WEST, statusPanel, 
+			outerPadding, 
+			SpringLayout.WEST, this
+		);
+		layout.putConstraint(
+			SpringLayout.EAST, statusPanel, 
+			-outerPadding,
+			SpringLayout.WIDTH, this
+		);
+		layout.putConstraint(
+			SpringLayout.SOUTH, statusPanel, 
+			-outerPadding, 
+			SpringLayout.SOUTH, this
 		);
 		
 		setLayout(layout);
+		
+		// Setup for connect four game mechanics
+		AbstractAI player1;
+		try {
+			player1 = AIFactory.getAI(player1Name);
+		} catch (AIFactoryException e) {
+			player1 = new Player();
+		}
+		
+		AbstractAI player2;
+		try {
+			player2 = AIFactory.getAI(player2Name);
+		} catch (AIFactoryException e) {
+			player2 = new Player();
+		}
+		
+		controller = new GameController(player1, player2);
+		
+		ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+		canvas.updateModel(controller.getGameState().getBoard());
+		canvas.repaint();
+		
+		((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
+		((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
 	}
 	
 	public JPanel getControlPanel() {
@@ -101,20 +154,82 @@ public class ConnectFourPanel extends JPanel {
 		// Buttons for the game state history
 		JPanel basePanel = new JPanel();
 
-		JLabel stateLabel = new JLabel("[default text]");
+		JLabel stateLabel = new JLabel();
 		stateLabel.setHorizontalAlignment(JLabel.CENTER);
 		basePanel.add(stateLabel);
 		
 		JButton prevFarButton = new JButton("<<");
+		prevFarButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				controller.moveToStart();
+				
+				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				canvas.updateModel(controller.getGameState().getBoard());
+				canvas.repaint();
+				
+				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
+				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+			}
+		});
 		basePanel.add(prevFarButton);
 		
 		JButton prevButton = new JButton("<");
+		prevButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				// Cannot move to a state before the initial state
+				if (controller.getCurrentState() == 0) {
+					return;
+				}
+				
+				controller.moveBackwards();
+				
+				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				canvas.updateModel(controller.getGameState().getBoard());
+				canvas.repaint();
+				
+				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
+				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+			}
+		});
 		basePanel.add(prevButton);
 		
 		JButton nextButton = new JButton(">");
+		nextButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				if (controller.getCurrentState() == controller.getTotalState() && 
+					!controller.addGameState()) {
+					return;
+				}
+				
+				controller.moveForwards();
+				
+				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				canvas.updateModel(controller.getGameState().getBoard());
+				canvas.repaint();
+				
+				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
+				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+			}
+		});
 		basePanel.add(nextButton);
 		
 		JButton nextFarButton = new JButton(">>");
+		nextFarButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				controller.moveToEnd();
+				
+				ConnectFourCanvas canvas = (ConnectFourCanvas)getBoardPanel().getComponent(0);
+				canvas.updateModel(controller.getGameState().getBoard());
+				canvas.repaint();
+				
+				((JLabel)getControlPanel().getComponent(0)).setText(controller.getStateString());
+				((JLabel)getStatusPanel().getComponent(0)).setText(controller.getMessageString());
+			}
+		});
 		basePanel.add(nextFarButton);
 		
 		// Component arrangement
@@ -123,56 +238,88 @@ public class ConnectFourPanel extends JPanel {
 		int innerPadding = 8;
 
 		layout.putConstraint(
-			SpringLayout.NORTH, prevFarButton, outerPadding, SpringLayout.NORTH, basePanel
+			SpringLayout.NORTH, prevFarButton, 
+			outerPadding,
+			SpringLayout.NORTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, prevFarButton
+			SpringLayout.SOUTH, basePanel,
+			outerPadding, 
+			SpringLayout.SOUTH, prevFarButton
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, prevFarButton, innerPadding * 2, SpringLayout.WEST, basePanel
-		);
-		
-		layout.putConstraint(
-			SpringLayout.NORTH, prevButton, outerPadding, SpringLayout.NORTH, basePanel
-		);
-		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, prevButton
-		);
-		layout.putConstraint(
-			SpringLayout.WEST, prevButton, innerPadding, SpringLayout.EAST, prevFarButton
+			SpringLayout.WEST, prevFarButton, 
+			innerPadding * 2, 
+			SpringLayout.WEST, basePanel
 		);
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, stateLabel, outerPadding, SpringLayout.NORTH, basePanel
+			SpringLayout.NORTH, prevButton,
+			outerPadding, 
+			SpringLayout.NORTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, stateLabel
+			SpringLayout.SOUTH, basePanel,
+			outerPadding, 
+			SpringLayout.SOUTH, prevButton
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, stateLabel, innerPadding, SpringLayout.EAST, prevButton
-		);
-		layout.putConstraint(
-			SpringLayout.EAST, stateLabel, innerPadding, SpringLayout.WEST, nextButton
-		);
-		
-		layout.putConstraint(
-			SpringLayout.NORTH, nextButton, outerPadding, SpringLayout.NORTH, basePanel
-		);
-		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, nextButton
-		);
-		layout.putConstraint(
-			SpringLayout.EAST, nextButton, -innerPadding, SpringLayout.WEST, nextFarButton
+			SpringLayout.WEST, prevButton, 
+			innerPadding, 
+			SpringLayout.EAST, prevFarButton
 		);
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, nextFarButton, outerPadding, SpringLayout.NORTH, basePanel
+			SpringLayout.NORTH, stateLabel, 
+			outerPadding, 
+			SpringLayout.NORTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, nextFarButton
+			SpringLayout.SOUTH, basePanel, 
+			outerPadding,
+			SpringLayout.SOUTH, stateLabel
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, nextFarButton, -innerPadding * 2, SpringLayout.EAST, basePanel
+			SpringLayout.WEST, stateLabel, 
+			innerPadding,
+			SpringLayout.EAST, prevButton
+		);
+		layout.putConstraint(
+			SpringLayout.EAST, stateLabel, 
+			innerPadding, 
+			SpringLayout.WEST, nextButton
+		);
+		
+		layout.putConstraint(
+			SpringLayout.NORTH, nextButton,
+			outerPadding, 
+			SpringLayout.NORTH, basePanel
+		);
+		layout.putConstraint(
+			SpringLayout.SOUTH, basePanel, 
+			outerPadding, 
+			SpringLayout.SOUTH, nextButton
+		);
+		layout.putConstraint(
+			SpringLayout.EAST, nextButton,
+			-innerPadding,
+			SpringLayout.WEST, nextFarButton
+		);
+		
+		layout.putConstraint(
+			SpringLayout.NORTH, nextFarButton, 
+			outerPadding, 
+			SpringLayout.NORTH, basePanel
+		);
+		layout.putConstraint(
+			SpringLayout.SOUTH, basePanel, 
+			outerPadding, 
+			SpringLayout.SOUTH, nextFarButton
+		);
+		layout.putConstraint(
+			SpringLayout.EAST, nextFarButton,
+			-innerPadding * 2, 
+			SpringLayout.EAST, basePanel
 		);
 		
 		basePanel.setLayout(layout);
@@ -229,7 +376,7 @@ public class ConnectFourPanel extends JPanel {
 	private JPanel buildBoardPanel() {
 		JPanel basePanel = new JPanel();
 		
-		ConnectFourCanvas canvas = new ConnectFourCanvas(new Board());
+		ConnectFourCanvas canvas = new ConnectFourCanvas();
 		basePanel.add(canvas);
 		
 		// Component arrangement
@@ -237,16 +384,24 @@ public class ConnectFourPanel extends JPanel {
 		int outerPadding = 0;
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, canvas, outerPadding, SpringLayout.NORTH, basePanel
+			SpringLayout.NORTH, canvas, 
+			outerPadding,
+			SpringLayout.NORTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, canvas, outerPadding, SpringLayout.WEST, basePanel
+			SpringLayout.WEST, canvas,
+			outerPadding, 
+			SpringLayout.WEST, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, canvas, -outerPadding, SpringLayout.WIDTH, basePanel
+			SpringLayout.EAST, canvas, 
+			-outerPadding, 
+			SpringLayout.WIDTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, canvas
+			SpringLayout.SOUTH, basePanel, 
+			outerPadding,
+			SpringLayout.SOUTH, canvas
 		);
 		
 		basePanel.setLayout(layout);
@@ -276,23 +431,35 @@ public class ConnectFourPanel extends JPanel {
 		int innerPadding = 8;
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, statusLabel, outerPadding, SpringLayout.NORTH, basePanel
+			SpringLayout.NORTH, statusLabel,
+			outerPadding,
+			SpringLayout.NORTH, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.WEST, statusLabel, outerPadding, SpringLayout.WEST, basePanel
+			SpringLayout.WEST, statusLabel, 
+			outerPadding,
+			SpringLayout.WEST, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, statusLabel, -outerPadding, SpringLayout.WIDTH, basePanel
+			SpringLayout.EAST, statusLabel,
+			-outerPadding,
+			SpringLayout.WIDTH, basePanel
 		);
 		
 		layout.putConstraint(
-			SpringLayout.NORTH, closeButton, innerPadding, SpringLayout.SOUTH, statusLabel
+			SpringLayout.NORTH, closeButton, 
+			innerPadding,
+			SpringLayout.SOUTH, statusLabel
 		);
 		layout.putConstraint(
-			SpringLayout.EAST, closeButton, -outerPadding, SpringLayout.EAST, basePanel
+			SpringLayout.EAST, closeButton,
+			-outerPadding,
+			SpringLayout.EAST, basePanel
 		);
 		layout.putConstraint(
-			SpringLayout.SOUTH, basePanel, outerPadding, SpringLayout.SOUTH, closeButton
+			SpringLayout.SOUTH, basePanel,
+			outerPadding,
+			SpringLayout.SOUTH, closeButton
 		);
 		
 		basePanel.setLayout(layout);

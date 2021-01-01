@@ -1,8 +1,10 @@
 package connectfour.gui;
 
 import connectfour.ai.util.*;
+import connectfour.core.*;
 import java.awt.event.*;
 import javax.swing.*;
+import java.util.*;
 
 
 public class SetupPanel extends JPanel {
@@ -33,7 +35,9 @@ public class SetupPanel extends JPanel {
 	private JPanel buildPlayerPanel() {
 		// Combo boxes and labels to describe the panel
 		JPanel basePanel = new JPanel();
-		String[] aiNames = AIFactory.getRegisteredNames();
+		AbstractList<String> playerNamesList = AIFactory.getRegisteredNames();
+		playerNamesList.add(0, Player.getName());
+		String[] playerNames = playerNamesList.toArray(new String[playerNamesList.size()]);
 		
 		JLabel instructionLabel = new JLabel(
 			"To play a game, choose who will play as red and as yellow."
@@ -43,30 +47,31 @@ public class SetupPanel extends JPanel {
 		JLabel player1Label = new JLabel("[Player 1] Red");
 		basePanel.add(player1Label);
 		
-		JComboBox<String> player1Combo = new JComboBox<>(aiNames);
+		JComboBox<String> player1Combo = new JComboBox<>(playerNames);
 		basePanel.add(player1Combo);
 		
 		JLabel player2Label = new JLabel("[Player 2] Yellow");
 		basePanel.add(player2Label);
 		
-		JComboBox<String> player2Combo = new JComboBox<>(aiNames);
+		JComboBox<String> player2Combo = new JComboBox<>(playerNames);
 		basePanel.add(player2Combo);
 		
 		JButton startButton = new JButton("Start Game");
 		startButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(ActionEvent event) {
+				// Grab the get the selected player names for the game
+				String player1 = (String)player1Combo.getSelectedItem();
+				String player2 = (String)player2Combo.getSelectedItem();
+				
+				ConnectFourPanel panel = new ConnectFourPanel(rootWindow, player1, player2);
+				((JLabel)panel.getPlayerPanel().getComponent(2)).setText(player1);
+				((JLabel)panel.getPlayerPanel().getComponent(3)).setText(player2);
+				
+				// Create a new tab for the game
 				JTabbedPane tabbedPane = (JTabbedPane)rootWindow.getContentPane().getComponent(0);
-				ConnectFourPanel panel = new ConnectFourPanel(rootWindow);
-				
-				// Grab the selected AI names from the combo boxes
-				String player1Select = (String)player1Combo.getSelectedItem();
-				((JLabel)panel.getPlayerPanel().getComponent(2)).setText(player1Select);
-				
-				String player2Select = (String)player2Combo.getSelectedItem();
-				((JLabel)panel.getPlayerPanel().getComponent(3)).setText(player2Select);
-				
 				tabbedPane.add("Game " + gamesCounter, panel);
+				tabbedPane.setSelectedIndex(tabbedPane.getTabCount() - 1);
 				gamesCounter++;
 			}
 		});

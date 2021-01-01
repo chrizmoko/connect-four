@@ -24,7 +24,7 @@ class ConnectFourCanvas extends JComponent {
 	private int offsetX;
 	private int offsetY;
 	
-	public ConnectFourCanvas(Board board) {
+	public void updateModel(Board board) {
 		boardModel = board;
 		
 		virtualRows = board.getRows() + 1;
