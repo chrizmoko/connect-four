@@ -3,8 +3,12 @@ package connectfour.core;
 public class GameState {
 	private Board board;
 	private Cell currentColor;
+	
 	private boolean gameOver;
-	private int numRed, numYellow, turns;
+	
+	private int numRed;
+	private int numYellow; 
+	private int turns;
 	
 	public GameState() {
 		board = new Board();
@@ -87,10 +91,15 @@ public class GameState {
 			throw new ConnectFourException("Cannot drop chip into full column.");
 		}
 		
-		// Check if the game has completed (either with a connect four or a draw)
-		if (board.hasConnectFour() || numRed + numYellow == board.getRows() * board.getColumns()) {
+		// Check if the game has completed (by a connect four)
+		if (board.hasConnectFour()) {
 			gameOver = true;
 			return;
+		}
+		
+		// Check if the game has completed by a draw
+		if (numRed + numYellow + 1 == board.getRows() * board.getColumns()) {
+			gameOver = true;
 		}
 		
 		// Update game state attributes
