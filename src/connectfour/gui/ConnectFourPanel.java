@@ -13,14 +13,16 @@ public class ConnectFourPanel extends JPanel {
 	private JPanel boardPanel;
 	private JPanel closePanel;
 	
+	private MouseAdapter mouseInput;
+	
 	private GameController controller;
 	
-	public ConnectFourPanel(JFrame root, String player1Name, String player2Name) {
+	public ConnectFourPanel(JFrame root, GameController gameControl) {
 		super();
 		
 		rootWindow = root;
 		
-		// Panels for this panel
+		// Initialize GUI elements (in panels) for this panel
 		controlPanel = buildControlPanel();
 		add(controlPanel);
 		
@@ -110,21 +112,47 @@ public class ConnectFourPanel extends JPanel {
 		setLayout(layout);
 		
 		// Setup for connect four game mechanics
-		AbstractAI player1;
-		try {
-			player1 = AIFactory.getAI(player1Name);
-		} catch (AIFactoryException e) {
-			player1 = new Player();
-		}
+		controller = gameControl;
 		
-		AbstractAI player2;
-		try {
-			player2 = AIFactory.getAI(player2Name);
-		} catch (AIFactoryException e) {
-			player2 = new Player();
-		}
-		
-		controller = new GameController(player1, player2);
+		mouseInput = new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent event) {
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
+				
+				int column = canvas.getHoverColumn();
+				if (column == -1) {
+					return;
+				}
+				
+				if (controller.getGameState().isRedTurn()) {
+					((Player)controller.getRedPlayer()).setNextMove(column);
+				} else {
+					((Player)controller.getYellowPlayer()).setNextMove(column);
+				}
+				
+				controller.addGameState();
+				controller.moveForwards();
+				
+				canvas.updateModel(controller.getGameState().getBoard());
+				canvas.repaint();
+				
+				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
+				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
+				
+				// Check if next turn is a human
+				if (controller.isNextTurnHuman()) {
+					if (controller.getGameState().isRedTurn()) {
+						canvas.setHoverColor(Cell.RED);
+					} else {
+						canvas.setHoverColor(Cell.YELLOW);
+					}
+					return;
+				}
+				
+				canvas.allowHover(false);
+				canvas.removeMouseListener(mouseInput);
+			}
+		};
 		
 		ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 		canvas.updateModel(controller.getGameState().getBoard());
@@ -132,6 +160,17 @@ public class ConnectFourPanel extends JPanel {
 		
 		((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
 		((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
+		
+		if (controller.getCurrentState() == controller.getTotalState() &&
+			controller.isNextTurnHuman()) {
+			if (controller.getGameState().isRedTurn()) {
+				canvas.setHoverColor(Cell.RED);
+			} else {
+				canvas.setHoverColor(Cell.YELLOW);
+			}
+			canvas.allowHover(true);
+			canvas.addMouseListener(mouseInput);
+		}
 	}
 	
 	public JPanel getControlPanel() {
@@ -199,6 +238,12 @@ public class ConnectFourPanel extends JPanel {
 		nextButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
+				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
+				
+				if (canvas.canHover()) {
+					return;
+				}
+				
 				if (controller.getCurrentState() == controller.getTotalState() && 
 					!controller.addGameState()) {
 					return;
@@ -206,12 +251,24 @@ public class ConnectFourPanel extends JPanel {
 				
 				controller.moveForwards();
 				
-				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
+				
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
 				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
 				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
+				
+				// Check if human interaction is needed to progress to the next state
+				if (controller.getCurrentState() == controller.getTotalState() &&
+					controller.isNextTurnHuman()) {
+					if (controller.getGameState().isRedTurn()) {
+						canvas.setHoverColor(Cell.RED);
+					} else {
+						canvas.setHoverColor(Cell.YELLOW);
+					}
+					canvas.allowHover(true);
+					canvas.addMouseListener(mouseInput);
+				}
 			}
 		});
 		basePanel.add(nextButton);
@@ -222,12 +279,29 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				controller.moveToEnd();
 				
+				while (controller.isNextTurnAI()) {
+					controller.addGameState();
+					controller.moveForwards();
+				}
+				
 				ConnectFourCanvas canvas = (ConnectFourCanvas)boardPanel.getComponent(0);
 				canvas.updateModel(controller.getGameState().getBoard());
 				canvas.repaint();
 				
 				((JLabel)controlPanel.getComponent(0)).setText(controller.getStateString());
 				((JLabel)boardPanel.getComponent(1)).setText(controller.getMessageString());
+				
+				// Check if human interaction is needed to progress to the next state
+				if (controller.getCurrentState() == controller.getTotalState() &&
+					controller.isNextTurnHuman()) {
+					if (controller.getGameState().isRedTurn()) {
+						canvas.setHoverColor(Cell.RED);
+					} else {
+						canvas.setHoverColor(Cell.YELLOW);
+					}
+					canvas.allowHover(true);
+					canvas.addMouseListener(mouseInput);
+				}
 			}
 		});
 		basePanel.add(nextFarButton);
@@ -439,7 +513,6 @@ public class ConnectFourPanel extends JPanel {
 		// Component arrangement
 		SpringLayout layout = new SpringLayout();
 		int outerPadding = 0;
-		int innerPadding = 8;
 		
 		layout.putConstraint(
 			SpringLayout.NORTH, closeButton, 

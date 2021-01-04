@@ -1,6 +1,7 @@
 package connectfour.core;
 
 import connectfour.ai.util.*;
+import connectfour.gui.*;
 import java.util.*;
 
 public class GameController {
@@ -15,54 +16,54 @@ public class GameController {
 	private class GameStateData {
 		public GameState gameState;
 		public String message;
-		public boolean validity;
+		public boolean completed;
 		
-		public GameStateData(GameState gs, String msg, boolean valid) {
+		public GameStateData(GameState gs, String msg, boolean c) {
 			gameState = gs;
 			message = msg;
-			validity = valid;
+			completed = c;
 		}
 	}
-
+	
 	private ArrayList<GameStateData> history;
 	private int currentState;
 	private int totalState;
 
-	private AbstractAI player1;
-	private AbstractAI player2;
+	private AbstractAI playerRed;
+	private AbstractAI playerYellow;
 	
-	public GameController(AbstractAI p1, AbstractAI p2) {
+	public GameController(AbstractAI player1, AbstractAI player2) {
 		history = new ArrayList<>();
-		history.add(new GameStateData(new GameState(), MESSAGE_RED_TURN, true));
+		history.add(new GameStateData(new GameState(), MESSAGE_RED_TURN, false));
 		
 		currentState = 0;
 		totalState = 0;
 		
-		player1 = p1;
-		player2 = p2;
+		playerRed = player1;
+		playerYellow = player2;
 	}
 	
 	public boolean addGameState() {
 		// Do not add anymore states if the game is already completed
-		if (!history.get(totalState).validity) {
+		if (history.get(totalState).completed) {
 			return false;
 		}
 		
 		GameState gameState = history.get(totalState).gameState.copy();
 		String message = null;
-		boolean validity = true;
+		boolean isCompleted = false;
 		
 		try {
 			if (gameState.isRedTurn()) {
-				gameState.makeMove(player1.chooseMove(gameState.copy()));
+				gameState.makeMove(playerRed.chooseMove(gameState.copy()));
 				message = MESSAGE_YELLOW_TURN;
 			} else {
-				gameState.makeMove(player2.chooseMove(gameState.copy()));
+				gameState.makeMove(playerYellow.chooseMove(gameState.copy()));
 				message = MESSAGE_RED_TURN;
 			}
 		} catch (ConnectFourException | IllegalArgumentException e) {
 			message = MESSAGE_GAME_ERROR;
-			validity = false;
+			isCompleted = true;
 		}
 		
 		if (gameState.isGameOver()) {
@@ -79,10 +80,10 @@ public class GameController {
 				// with an empty catch statement if I decided to pre-check for a draw game.
 				message = MESSAGE_GAME_DRAW;
 			}
-			validity = false;
+			isCompleted = true;
 		}
 		
-		GameStateData data = new GameStateData(gameState, message, validity);
+		GameStateData data = new GameStateData(gameState, message, isCompleted);
 		history.add(data);
 		
 		totalState++;
@@ -94,8 +95,34 @@ public class GameController {
 		return history.get(currentState).gameState;
 	}
 	
-	public String getMessageString() {
-		return history.get(currentState).message;
+	public boolean isNextTurnAI() {
+		if (!history.get(totalState).completed) {
+			if (history.get(totalState).gameState.isRedTurn()) {
+				return !(playerRed instanceof Player);
+			} else {
+				return !(playerYellow instanceof Player);
+			}
+		}
+		return false;
+	}
+	
+	public boolean isNextTurnHuman() {
+		if (!history.get(totalState).completed) {
+			if (history.get(totalState).gameState.isRedTurn()) {
+				return playerRed instanceof Player;
+			} else {
+				return playerYellow instanceof Player;
+			}
+		}
+		return false;
+	}
+	
+	public AbstractAI getRedPlayer() {
+		return playerRed;
+	}
+	
+	public AbstractAI getYellowPlayer() {
+		return playerYellow;
 	}
 	
 	public void moveToStart() {
@@ -104,12 +131,6 @@ public class GameController {
 	
 	public void moveToEnd() {
 		currentState = totalState;
-		
-		// This could also mean fast forward the game
-		if (history.get(totalState).validity) {
-			while (addGameState());
-			currentState = totalState;
-		}
 	}
 	
 	public void moveForwards() {
@@ -136,5 +157,9 @@ public class GameController {
 	
 	public String getStateString() {
 		return "State " + currentState + " out of " + totalState;
+	}
+	
+	public String getMessageString() {
+		return history.get(currentState).message;
 	}
 }

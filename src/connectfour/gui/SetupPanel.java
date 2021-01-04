@@ -64,7 +64,24 @@ public class SetupPanel extends JPanel {
 				String player1 = (String)player1Combo.getSelectedItem();
 				String player2 = (String)player2Combo.getSelectedItem();
 				
-				ConnectFourPanel panel = new ConnectFourPanel(rootWindow, player1, player2);
+				// Create game controller and connect four game panel
+				AbstractAI playerRed;
+				try {
+					playerRed = AIFactory.getAI(player1);
+				} catch (AIFactoryException e) {
+					playerRed = new Player();
+				}
+				
+				AbstractAI playerYellow;
+				try {
+					playerYellow = AIFactory.getAI(player2);
+				} catch (AIFactoryException e) {
+					playerYellow = new Player();
+				}
+				
+				GameController controller = new GameController(playerRed, playerYellow);
+				ConnectFourPanel panel = new ConnectFourPanel(rootWindow, controller);
+				
 				((JLabel)panel.getPlayerPanel().getComponent(2)).setText(player1);
 				((JLabel)panel.getPlayerPanel().getComponent(3)).setText(player2);
 				
