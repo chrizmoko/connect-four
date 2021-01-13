@@ -1,125 +1,152 @@
 package connectfour.core;
 
-public class Board 
-{
-	private int rows, cols;
-	private int matches;
+public class Board {
+	private static int DEFAULT_NUM_ROWS = 6;
+	private static int DEFAULT_NUM_COLUMNS = 7;
+	private static int DEFAULT_MATCH_LENGTH = 4;
+	
+	private int numRows;
+	private int numCols;
+	private int matchLength;
 	private Cell[][] board;
 	
+	// Keeps track of the row of the lowest empty cell (for speedup purposes)
+	private int[] lowestEmptyRows;
+	
 	public Board() {
-		rows = 6;
-		cols = 7;
-		matches = 4;
-		board = new Cell[rows][cols];
-		
-		fillBoard(Cell.EMPTY);
+		this(DEFAULT_NUM_ROWS, DEFAULT_NUM_COLUMNS, DEFAULT_MATCH_LENGTH);
 	}
 	
-	public Board(int r, int c) {
-		rows = r;
-		cols = c;
-		matches = 4;
-		board = new Cell[rows][cols];
+	public Board(int rows, int columns, int matches) {
+		if (rows < 0) {
+			throw new IllegalArgumentException("Board cannot have negative rows.");
+		}
+		if (columns < 0) {
+			throw new IllegalArgumentException("Board cannot have negative columns.");
+		}
+		if (matches < 1) {
+			throw new IllegalArgumentException("Match requirement must be at least 1.");
+		}
 		
-		fillBoard(Cell.EMPTY);
+		numRows = rows;
+		numCols = columns;
+		matchLength = matches;
+		board = new Cell[numRows][numCols];
+		
+		for (int r = 0; r < numRows; r++) {
+			for (int c = 0; c < numCols; c++) {
+				board[r][c] = Cell.EMPTY;
+			}
+		}
+		
+		lowestEmptyRows = new int[numCols];
+		for (int c = 0; c < numCols; c++) {
+			lowestEmptyRows[c] = numRows - 1;
+		}
 	}
 	
 	public Board(Board copy) {
-		rows = copy.rows;
-		cols = copy.cols;
-		matches = copy.matches;
-		board = new Cell[rows][cols];
+		numRows = copy.numRows;
+		numCols = copy.numCols;
+		matchLength = copy.matchLength;
+		board = new Cell[numRows][numCols];
 		
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
+		for (int r = 0; r < numRows; r++) {
+			for (int c = 0; c < numCols; c++) {
 				board[r][c] = copy.board[r][c];
 			}
 		}
+		
+		lowestEmptyRows = new int[numCols];
+		for (int c = 0; c < numCols; c++) {
+			lowestEmptyRows[c] = copy.lowestEmptyRows[c];
+		}
 	}
 	
-	public void setCellAt(Cell cell, int row, int col) {
-		if (row < 0 || row >= rows) {
+	public void setCellAt(Cell cell, int row, int column) {
+		if (row < 0 || row >= numRows) {
 			throw new IllegalArgumentException("Row value is out of board boundaries.");
 		}
-		if (col < 0 || col >= cols) {
+		if (column < 0 || column >= numCols) {
 			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
-		board[row][col] = cell;
+		board[row][column] = cell;
 	}
 	
-	public Cell getCellAt(int row, int col) {
-		if (row < 0 || row >= rows) {
+	public Cell getCellAt(int row, int column) {
+		if (row < 0 || row >= numRows) {
 			throw new IllegalArgumentException("Row value is out of board boundaries.");
 		}
-		if (col < 0 || col >= cols) {
+		if (column < 0 || column >= numCols) {
 			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
-		return board[row][col];
+		return board[row][column];
 	}
 	
-	public boolean dropChip(Cell chip, int col) {
-		if (chip == Cell.EMPTY) {
+	public void setLowestEmptyRow(Cell cell, int column) {
+		if (column < 0 || column >= numCols) {
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		}
+		board[lowestEmptyRows[column]][column] = cell;
+		lowestEmptyRows[column]--;
+	}
+	
+	public int getLowestEmptyRow(int column) {
+		if (column < 0 || column >= numCols) {
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		}
+		return lowestEmptyRows[column];
+	}
+	
+	public void dropChip(Cell cell, int column) {
+		if (cell == Cell.EMPTY) {
 			throw new IllegalArgumentException("An empty chip cannot be dropped into the board.");
 		}
-		if (col < 0 || col >= cols) {
+		if (column < 0 || column >= numCols) {
 			throw new IllegalArgumentException("Column value is out of board boundaries.");
 		}
-		
-		// Search upwards from bottom of column until empty slot is found
-		for (int r = rows - 1; r >= 0; r--) {
-			if (board[r][col] == Cell.EMPTY) {
-				board[r][col] = chip;
-				return true;
-			}
-		}
-		return false;
+		setLowestEmptyRow(cell, column);
 	}
 	
 	public boolean hasConnectFour() {
-		return (hasConnectFourHorizontal(matches) || hasConnectFourVertical(matches) ||
-				hasConnectFourPositiveDiagonal(matches) || hasConnectFourNegativeDiagonal(matches));
+		return (hasConnectFourHorizontal() || hasConnectFourVertical() ||
+				hasConnectFourPositiveDiagonal() || hasConnectFourNegativeDiagonal()
+		);
 	}
 	
-	public int getRows() {
-		return rows;
+	public int getMatchLength() {
+		return matchLength;
 	}
 	
-	public int getColumns() {
-		return cols;
+	public int getNumRows() {
+		return numRows;
 	}
 	
-	private void fillBoard(Cell cell) {
-		for (int r = 0; r < rows; r++) {
-			for (int c = 0; c < cols; c++) {
-				board[r][c] = cell;
-			}
-		}
+	public int getNumColumns() {
+		return numCols;
 	}
 	
-	private boolean hasConnectFourHorizontal(int matchLength) {
-		for (int r = 0; r < rows; r++) {
-			int matchCount = 0;
-			for (int c = 0; c < cols - 1; c++) {
-				// Check for matching continuity among the same non-empty cells
+	private boolean hasConnectFourHorizontal() {
+		for (int r = 0; r < numRows; r++) {
+			int matchCount = 1;
+			for (int c = 0; c < numCols - 1; c++) {
 				if (board[r][c] != Cell.EMPTY && board[r][c] == board[r][c+1]) {
 					matchCount++;
+					if (matchCount == matchLength) {
+						return true;
+					}
 				} else {
-					matchCount = 0;
-				}
-				
-				// Check if there has been a match of certain length
-				if (matchCount == matchLength - 1) {
-					return true;
+					matchCount = 1;
 				}
 			}
 		}
 		return false;
 	}
 	
-	private boolean hasConnectFourVertical(int matchLength) {
-		for (int c = 0; c < cols; c++) {
+	private boolean hasConnectFourVertical() {
+		for (int c = 0; c < numCols; c++) {
 			int matchCount = 0;
-			for (int r = 0; r < rows - 1; r++) {
+			for (int r = 0; r < numRows - 1; r++) {
 				// Check for matching continuity among the same non-empty cells
 				if (board[r][c] != Cell.EMPTY && board[r][c] == board[r+1][c]) {
 					matchCount++;
@@ -136,13 +163,13 @@ public class Board
 		return false;
 	}
 	
-	private boolean hasConnectFourPositiveDiagonal(int matchLength) {
-		for (int r = matchLength - 1; r < rows; r++) {
-			for (int c = 0; c < cols - matchLength + 1; c++) {
+	private boolean hasConnectFourPositiveDiagonal() {
+		for (int r = 0; r < numRows - matchLength + 1; r++) {
+			for (int c = 0; c < numCols - matchLength + 1; c++) {
 				// Manually check for a connection at each new position
 				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r][c] == Cell.EMPTY || board[r-i][c+i] != board[r-i-1][c+i+1]) {
+					if (board[r][c] == Cell.EMPTY || board[r+i][c+i] != board[r+i+1][c+i+1]) {
 						matches = false;
 						break;
 					}
@@ -157,13 +184,13 @@ public class Board
 		return false;
 	}
 	
-	private boolean hasConnectFourNegativeDiagonal(int matchLength) {
-		for (int r = 0; r < rows - matchLength + 1; r++) {
-			for (int c = 0; c < cols - matchLength + 1; c++) {
+	private boolean hasConnectFourNegativeDiagonal() {
+		for (int r = matchLength - 1; r < numRows; r++) {
+			for (int c = 0; c < numCols - matchLength + 1; c++) {
 				// Manually check for a connection at each new position
 				boolean matches = true;
 				for (int i = 0; i < matchLength - 1; i++) {
-					if (board[r][c] == Cell.EMPTY || board[r+i][c+i] != board[r+i+1][c+i+1]) {
+					if (board[r][c] == Cell.EMPTY || board[r-i][c+i] != board[r-i-1][c+i+1]) {
 						matches = false;
 						break;
 					}

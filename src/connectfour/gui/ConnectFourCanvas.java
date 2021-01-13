@@ -63,8 +63,8 @@ public class ConnectFourCanvas extends JComponent {
 	
 	public void updateModel(Board board) {
 		boardModel = board;
-		virtualRows = board.getRows() + 1;
-		virtualCols = board.getColumns();
+		virtualRows = board.getNumRows() + 1;
+		virtualCols = board.getNumColumns();
 	}
 	
 	public void setHoverColor(Cell cellColor) {
@@ -119,8 +119,8 @@ public class ConnectFourCanvas extends JComponent {
 			g.fillRect(offsetX, adjustedOffsetY, virtualWidth, adjustedVirtualHeight);
 			
 			// Paint the cells from the board model
-			for (int r = 0; r < boardModel.getRows(); r++) {
-				for (int c = 0; c < boardModel.getColumns(); c++) {
+			for (int r = 0; r < boardModel.getNumRows(); r++) {
+				for (int c = 0; c < boardModel.getNumColumns(); c++) {
 					switch (boardModel.getCellAt(r, c)) {
 					case RED:
 						g.setColor(RED_PLAYER_COLOR);

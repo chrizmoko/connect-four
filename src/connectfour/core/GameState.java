@@ -57,39 +57,35 @@ public class GameState {
 		return gameOver;
 	}
 	
-	public boolean isGameDraw() {
-		return gameOver && (numRed + numYellow == board.getRows() * board.getColumns());
-	}
-	
 	public Cell getWinner() throws ConnectFourException {
 		if (!gameOver) {
 			throw new ConnectFourException("The game is in progress, there is no winner yet.");
-		}
-		if (numRed + numYellow == board.getRows() * board.getColumns()) {
-			throw new ConnectFourException("The game completed in a draw, there is no winner.");
 		}
 		return currentColor;
 	}
 	
 	public boolean isValidMove(int col) {
+		if (col < 0 || col >= board.getNumColumns()) {
+			return false;
+		}
 		return board.getCellAt(0, col) == Cell.EMPTY;
 	}
 	
 	public void makeMove(int col) throws ConnectFourException {
+		if (col < 0 || col >= board.getNumColumns()) {
+			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		}
 		if (gameOver) {
 			throw new ConnectFourException("The game has completed, cannot make further moves.");
 		}
-		if (col < 0 || col >= board.getColumns()) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		if (board.getCellAt(0, col) != Cell.EMPTY) {
+			throw new ConnectFourException("Cannot drop chip into a full column.");
 		}
 		
-		// Select chip color
+		
+		// Drop chip into the board
 		Cell chip = (currentColor == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		
-		// Drop chip into the given column if possible
-		if (!board.dropChip(chip, col)) {
-			throw new ConnectFourException("Cannot drop chip into full column.");
-		}
+		board.dropChip(chip, col);
 		
 		// Check if the game has completed (by a connect four)
 		if (board.hasConnectFour()) {
@@ -98,8 +94,10 @@ public class GameState {
 		}
 		
 		// Check if the game has completed by a draw
-		if (numRed + numYellow + 1 == board.getRows() * board.getColumns()) {
+		if (numRed + numYellow + 1 == board.getNumRows() * board.getNumColumns()) {
 			gameOver = true;
+			currentColor = Cell.EMPTY;
+			return;
 		}
 		
 		// Update game state attributes
@@ -110,6 +108,7 @@ public class GameState {
 			numYellow++;
 			currentColor = Cell.RED;
 		}
+
 		turns++;
 	}
 	

@@ -1,14 +1,13 @@
 package connectfour.core;
 
 import connectfour.ai.util.*;
-import connectfour.gui.*;
 import java.util.*;
 
 public class GameController {
 	private static final String MESSAGE_RED_TURN = "[Player 1] Red's turn to make a move.";
 	private static final String MESSAGE_YELLOW_TURN = "[Player 2] Yellow's turn to make a move.";
 	private static final String MESSAGE_GAME_RED_WIN = "[Player 1] Red wins the game!";
-	private static final String MESSAGE_GAME_YELLOW_WIN = "[Player 2] Yello wins the game!";
+	private static final String MESSAGE_GAME_YELLOW_WIN = "[Player 2] Yellow wins the game!";
 	private static final String MESSAGE_GAME_DRAW = "The game is a draw -- there is no winner.";
 	private static final String MESSAGE_GAME_ERROR = "An error occurred -- the game is halted.";
 	
@@ -63,22 +62,25 @@ public class GameController {
 			}
 		} catch (ConnectFourException | IllegalArgumentException e) {
 			message = MESSAGE_GAME_ERROR;
+			e.printStackTrace();
 			isCompleted = true;
 		}
 		
 		if (gameState.isGameOver()) {
 			try {
-				if (gameState.getWinner() == Cell.RED) {
+				switch (gameState.getWinner()) {
+				case RED:
 					message = MESSAGE_GAME_RED_WIN;
-				} else {
+					break;
+				case YELLOW:
 					message = MESSAGE_GAME_YELLOW_WIN;
+					break;
+				default:
+					message = MESSAGE_GAME_DRAW;
+					break;
 				}
 			} catch (ConnectFourException e) {
-				// GameState.getWinner() throws an exception for an uncompleted game or for a
-				// completed game that reulsted in a draw. This is a bit of a "dirty" way to use
-				// a catch statement (as an else statement), but I have no idea what I would do
-				// with an empty catch statement if I decided to pre-check for a draw game.
-				message = MESSAGE_GAME_DRAW;
+				// Should not occur since the game is already checked for completion
 			}
 			isCompleted = true;
 		}
