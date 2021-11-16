@@ -1,9 +1,22 @@
 package connectfour.ai.util;
 
 import java.util.*;
+import connectfour.ai.*;
 
 public class AIFactory {
 	private static final AbstractMap<String, AISupplier> suppliers = new HashMap<>();
+
+	static {
+		AISupplier[] supplierArray = new AISupplier[]{
+			new BlockerAISupplier(),
+			new NextColumnAISupplier(),
+			new RandomAISupplier()
+		};
+
+		for (AISupplier supplier : supplierArray) {
+			suppliers.put(supplier.getAIName(), supplier);
+		}
+	}
 	
 	public static void registerSupplier(String name, AISupplier supplier) throws AIFactoryException {
 		if (name == null) {

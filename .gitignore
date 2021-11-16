@@ -1,5 +1,1 @@
-/bin/
-
-# Files related to Eclipse
-*.classpath
-*.project
+target

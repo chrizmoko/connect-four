@@ -1,6 +1,5 @@
 package connectfour.gui;
 
-import connectfour.ai.util.*;
 import connectfour.core.*;
 import java.awt.*;
 import java.awt.event.*;
