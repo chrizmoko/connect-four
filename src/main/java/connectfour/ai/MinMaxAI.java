@@ -19,7 +19,7 @@ public class MinMaxAI extends AbstractAI {
 	@Override
 	public int chooseMove(GameState state) {
 		// Initial decision (for comparison) for a valid column
-		GameState copy = state.copy();
+		GameState copy = new GameState(state);
 		int decision = 0;
 		while (true) {
 			try {
@@ -33,7 +33,7 @@ public class MinMaxAI extends AbstractAI {
 		// From the result of the initial comparison value, find the best move
 		int maxValue = minmax(copy, depth, true);
 		for (int i = decision + 1; i < state.getBoard().getNumColumns(); i++) {
-			copy = state.copy();
+			copy = new GameState(state);
 			
 			try {
 				copy.makeMove(i);
@@ -64,7 +64,7 @@ public class MinMaxAI extends AbstractAI {
 			// Maximize
 			int maxValue = -1;
 			for (int c = 0; c < state.getBoard().getNumColumns(); c++) {
-				GameState copy = state.copy();
+				GameState copy = new GameState(state);
 				
 				try {
 					copy.makeMove(c);
@@ -82,7 +82,7 @@ public class MinMaxAI extends AbstractAI {
 			// Minimize
 			int minValue = 1;
 			for (int c = 0; c < state.getBoard().getNumColumns(); c++) {
-				GameState copy = state.copy();
+				GameState copy = new GameState(state);
 				
 				try {
 					copy.makeMove(c);

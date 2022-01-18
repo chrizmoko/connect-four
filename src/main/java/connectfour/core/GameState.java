@@ -57,35 +57,35 @@ public class GameState {
 		return gameOver;
 	}
 	
-	public Cell getWinner() throws ConnectFourException {
+	public Cell getWinner() {
 		if (!gameOver) {
-			throw new ConnectFourException("The game is in progress, there is no winner yet.");
+			throw new ConnectFourException("Cannot determine winner; game is not completed.");
 		}
 		return currentColor;
 	}
 	
-	public boolean isValidMove(int col) {
-		if (col < 0 || col >= board.getNumColumns()) {
+	public boolean isValidMove(int column) {
+		if (column < 0 || column >= board.getNumColumns()) {
 			return false;
 		}
-		return board.getCellAt(0, col) == Cell.EMPTY;
+		return board.getCellAt(0, column) == Cell.EMPTY;
 	}
 	
-	public void makeMove(int col) throws ConnectFourException {
-		if (col < 0 || col >= board.getNumColumns()) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+	public void makeMove(int column) {
+		if (column < 0 || column >= board.getNumColumns()) {
+			throw new ColumnOutOfBoundsException("Column value is out of bounds.");
 		}
 		if (gameOver) {
 			throw new ConnectFourException("The game has completed, cannot make further moves.");
 		}
-		if (board.getCellAt(0, col) != Cell.EMPTY) {
+		if (board.getCellAt(0, column) != Cell.EMPTY) {
 			throw new ConnectFourException("Cannot drop chip into a full column.");
 		}
 		
 		
 		// Drop chip into the board
 		Cell chip = (currentColor == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		board.dropChip(chip, col);
+		board.dropChip(chip, column);
 		
 		// Check if the game has completed (by a connect four)
 		if (board.hasConnectFour()) {
@@ -110,9 +110,5 @@ public class GameState {
 		}
 
 		turns++;
-	}
-	
-	public GameState copy() {
-		return new GameState(this);
 	}
 }

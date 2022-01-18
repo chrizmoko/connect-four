@@ -12,52 +12,65 @@ public class GameController {
 	private static final String MESSAGE_GAME_ERROR = "An error occurred -- the game is halted.";
 	
 	// Helper struct for associating UI messages with the current game state
-	private class GameStateData {
+	private class GameStateData_ {
 		public GameState gameState;
 		public String message;
 		public boolean completed;
 		
-		public GameStateData(GameState gs, String msg, boolean c) {
+		public GameStateData_(GameState gs, String msg, boolean c) {
 			gameState = gs;
 			message = msg;
 			completed = c;
 		}
 	}
 	
-	private ArrayList<GameStateData> history;
+	private ArrayList<GameStateData_> _history_;
+	private ArrayList<Integer> history;
 	private int currentState;
 	private int totalState;
+	private int completionState;
+
+	private GameState gameState;
+	private String currentMessage;
 
 	private AbstractAI playerRed;
 	private AbstractAI playerYellow;
 	
 	public GameController(AbstractAI player1, AbstractAI player2) {
+		_history_ = new ArrayList<>();
+		_history_.add(new GameStateData_(new GameState(), MESSAGE_RED_TURN, false));
+
 		history = new ArrayList<>();
-		history.add(new GameStateData(new GameState(), MESSAGE_RED_TURN, false));
 		
 		currentState = 0;
 		totalState = 0;
+		completionState = -1;
 		
+		// Red always starts first
+		gameState = new GameState();
+		currentMessage = MESSAGE_RED_TURN;
+
 		playerRed = player1;
 		playerYellow = player2;
 	}
 	
 	public boolean addGameState() {
+		/*
 		// Do not add anymore states if the game is already completed
-		if (history.get(totalState).completed) {
+		if (_history_.get(totalState).completed) {
 			return false;
 		}
 		
-		GameState gameState = history.get(totalState).gameState.copy();
+		GameState gameState = new GameState(_history_.get(totalState).gameState);
 		String message = null;
 		boolean isCompleted = false;
 		
 		try {
 			if (gameState.isRedTurn()) {
-				gameState.makeMove(playerRed.chooseMove(gameState.copy()));
+				gameState.makeMove(playerRed.chooseMove(new GameState(gameState)));
 				message = MESSAGE_YELLOW_TURN;
 			} else {
-				gameState.makeMove(playerYellow.chooseMove(gameState.copy()));
+				gameState.makeMove(playerYellow.chooseMove(new GameState(gameState)));
 				message = MESSAGE_RED_TURN;
 			}
 		} catch (ConnectFourException | IllegalArgumentException e) {
@@ -85,21 +98,43 @@ public class GameController {
 			isCompleted = true;
 		}
 		
-		GameStateData data = new GameStateData(gameState, message, isCompleted);
-		history.add(data);
+		GameStateData_ data = new GameStateData_(gameState, message, isCompleted);
+		_history_.add(data);
 		
 		totalState++;
 		
 		return true;
+		*/
+
+		// Do not continue game if game is completed
+		if (completionState != -1) {
+			return false;
+		}
+
+		// Player makes a move
+		try {
+			if (gameState.isRedTurn()) {
+				gameState.makeMove(playerRed.chooseMove(new GameState(gameState)));
+				currentMessage = MESSAGE_YELLOW_TURN;
+			} else {
+				gameState.makeMove(playerYellow.chooseMove(new GameState(gameState)));
+				currentMessage = MESSAGE_RED_TURN;
+			}
+		} catch (ConnectFourException | IllegalArgumentException e) {
+			currentMessage = MESSAGE_GAME_ERROR;
+			e.printStackTrace();
+		}
+
+		return true;
 	}
 	
 	public GameState getGameState() {
-		return history.get(currentState).gameState;
+		return _history_.get(currentState).gameState;
 	}
 	
 	public boolean isNextTurnAI() {
-		if (!history.get(totalState).completed) {
-			if (history.get(totalState).gameState.isRedTurn()) {
+		if (!_history_.get(totalState).completed) {
+			if (_history_.get(totalState).gameState.isRedTurn()) {
 				return !(playerRed instanceof Player);
 			} else {
 				return !(playerYellow instanceof Player);
@@ -109,8 +144,8 @@ public class GameController {
 	}
 	
 	public boolean isNextTurnHuman() {
-		if (!history.get(totalState).completed) {
-			if (history.get(totalState).gameState.isRedTurn()) {
+		if (!_history_.get(totalState).completed) {
+			if (_history_.get(totalState).gameState.isRedTurn()) {
 				return playerRed instanceof Player;
 			} else {
 				return playerYellow instanceof Player;
@@ -162,6 +197,9 @@ public class GameController {
 	}
 	
 	public String getMessageString() {
-		return history.get(currentState).message;
+		/*
+		return _history_.get(currentState).message;
+		*/
+		return currentMessage;
 	}
 }

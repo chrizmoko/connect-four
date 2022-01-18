@@ -37,7 +37,7 @@ public class ConnectFourCanvas extends JComponent {
 		boardModel = null;
 		
 		// Add MouseListener from the canvas side since you have access to the all the stuff in
-		// that scope. Only keep MouseMotionListeners that is related to hovering to this class.
+		// that scope. Only keep MouseMotionListeners that are related to hovering to this class.
 		mouseInput = new MouseMotionListener() {
 			@Override
 			public void mouseDragged(MouseEvent event) {
@@ -69,15 +69,15 @@ public class ConnectFourCanvas extends JComponent {
 	
 	public void setHoverColor(Cell cellColor) {
 		switch (cellColor) {
-		case RED:
-			hoverColor = RED_PLAYER_COLOR;
-			break;
-		case YELLOW:
-			hoverColor = YELLOW_PLAYER_COLOR;
-			break;
-		default:
-			hoverColor = BACKGROUND_COLOR;
-			break;
+			case RED:
+				hoverColor = RED_PLAYER_COLOR;
+				break;
+			case YELLOW:
+				hoverColor = YELLOW_PLAYER_COLOR;
+				break;
+			default:
+				hoverColor = BACKGROUND_COLOR;
+				break;
 		}
 	}
 	
@@ -89,12 +89,12 @@ public class ConnectFourCanvas extends JComponent {
 	}
 	
 	public void allowHover(boolean canHover) {
-		hoverAllowed = canHover;
-		if (hoverAllowed) {
+		if (!hoverAllowed && canHover) {
 			addMouseMotionListener(mouseInput);
 		} else {
 			removeMouseMotionListener(mouseInput);
 		}
+		hoverAllowed = canHover;
 	}
 	
 	public boolean canHover() {
@@ -108,7 +108,7 @@ public class ConnectFourCanvas extends JComponent {
 		
 		// Draw board if a model is given
 		if (boardModel != null) {	
-			updateValues();
+			updateDimensions();
 			
 			int adjustedOffsetY = offsetY + virtualCellSize;
 			int adjustedVirtualHeight = virtualHeight - virtualCellSize;
@@ -122,15 +122,15 @@ public class ConnectFourCanvas extends JComponent {
 			for (int r = 0; r < boardModel.getNumRows(); r++) {
 				for (int c = 0; c < boardModel.getNumColumns(); c++) {
 					switch (boardModel.getCellAt(r, c)) {
-					case RED:
-						g.setColor(RED_PLAYER_COLOR);
-						break;
-					case YELLOW:
-						g.setColor(YELLOW_PLAYER_COLOR);
-						break;
-					default:
-						g.setColor(BACKGROUND_COLOR);
-						break;
+						case RED:
+							g.setColor(RED_PLAYER_COLOR);
+							break;
+						case YELLOW:
+							g.setColor(YELLOW_PLAYER_COLOR);
+							break;
+						default:
+							g.setColor(BACKGROUND_COLOR);
+							break;
 					}
 					
 					int positionX = (offsetX + cellOffset) + (virtualCellSize * c);
@@ -153,8 +153,8 @@ public class ConnectFourCanvas extends JComponent {
 		}
 	}
 	
-	private void updateValues() {
-		// The resizability of the board is dependent on the smaller dimension
+	private void updateDimensions() {
+		// Size of the board is clamped by the smaller dimension
 		if (getWidth() < getHeight()) {
 			offsetX = (int)(getWidth() * PAD_RATIO) / 2;
 			virtualWidth = getWidth() - (offsetX * 2);

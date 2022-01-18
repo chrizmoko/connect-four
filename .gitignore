@@ -1,4 +1,9 @@
 target
+
+# Eclipse settings
 .classpath
 .project
 .settings
+
+# VScode settings
+.vscode

@@ -1,8 +1,6 @@
 package connectfour.core;
 
-public class ConnectFourException extends Exception {
-	private static final long serialVersionUID = 1L;
-	
+public class ConnectFourException extends RuntimeException {
 	public ConnectFourException() {
 		super();
 	}

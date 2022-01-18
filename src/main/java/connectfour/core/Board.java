@@ -1,6 +1,9 @@
 package connectfour.core;
 
 public class Board {
+	private static final String ROW_ERROR_MESSAGE = "Row value is out of boundaries.";
+	private static final String COLUMN_ERROR_MESSAGE = "Column value is out of boundaries.";
+
 	private static int DEFAULT_NUM_ROWS = 6;
 	private static int DEFAULT_NUM_COLUMNS = 7;
 	private static int DEFAULT_MATCH_LENGTH = 4;
@@ -10,22 +13,26 @@ public class Board {
 	private int matchLength;
 	private Cell[][] board;
 	
-	// Keeps track of the row of the lowest empty cell (for speedup purposes)
+	// Cache the lowest empty row of each column for quick access
 	private int[] lowestEmptyRows;
+	private int numEmptyCells;
 	
 	public Board() {
 		this(DEFAULT_NUM_ROWS, DEFAULT_NUM_COLUMNS, DEFAULT_MATCH_LENGTH);
 	}
 	
 	public Board(int rows, int columns, int matches) {
-		if (rows < 0) {
-			throw new IllegalArgumentException("Board cannot have negative rows.");
+		if (rows < 1) {
+			throw new IllegalArgumentException("Board must have at least one row.");
 		}
-		if (columns < 0) {
-			throw new IllegalArgumentException("Board cannot have negative columns.");
+		if (columns < 1) {
+			throw new IllegalArgumentException("Board must have at least one column.");
 		}
 		if (matches < 1) {
 			throw new IllegalArgumentException("Match requirement must be at least 1.");
+		}
+		if (matches > rows || matches > columns) {
+			throw new IllegalArgumentException("Match requirement exceeds board dimensions.");
 		}
 		
 		numRows = rows;
@@ -43,6 +50,8 @@ public class Board {
 		for (int c = 0; c < numCols; c++) {
 			lowestEmptyRows[c] = numRows - 1;
 		}
+
+		numEmptyCells = rows * columns;
 	}
 	
 	public Board(Board copy) {
@@ -61,57 +70,98 @@ public class Board {
 		for (int c = 0; c < numCols; c++) {
 			lowestEmptyRows[c] = copy.lowestEmptyRows[c];
 		}
+
+		numEmptyCells = copy.numEmptyCells;
 	}
 	
 	public void setCellAt(Cell cell, int row, int column) {
-		if (row < 0 || row >= numRows) {
-			throw new IllegalArgumentException("Row value is out of board boundaries.");
+		if (!isRowInBounds(row)) {
+			throw new RowOutOfBoundsException(ROW_ERROR_MESSAGE);
 		}
-		if (column < 0 || column >= numCols) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
 		}
+		// Update cell count
+		if (board[row][column] != Cell.EMPTY && cell == Cell.EMPTY) {
+			numEmptyCells++;
+		} else if (board[row][column] == Cell.EMPTY && cell != Cell.EMPTY) {
+			numEmptyCells--;
+		}
+		// Update cache (this can cause a lot of invalidations)
 		board[row][column] = cell;
 	}
 	
 	public Cell getCellAt(int row, int column) {
-		if (row < 0 || row >= numRows) {
-			throw new IllegalArgumentException("Row value is out of board boundaries.");
+		if (!isRowInBounds(row)) {
+			throw new RowOutOfBoundsException(ROW_ERROR_MESSAGE);
 		}
-		if (column < 0 || column >= numCols) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
 		}
 		return board[row][column];
 	}
 	
-	public void setLowestEmptyRow(Cell cell, int column) {
-		if (column < 0 || column >= numCols) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+	public boolean dropChip(Cell cell, int column) {
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
 		}
-		board[lowestEmptyRows[column]][column] = cell;
-		lowestEmptyRows[column]--;
+		int row = lowestEmptyRows[column];
+		if (row == -1) {
+			return false;
+		}
+		if (cell != Cell.EMPTY) {
+			board[row][column] = cell;
+			lowestEmptyRows[column]--;
+		}
+		return true;
 	}
-	
-	public int getLowestEmptyRow(int column) {
-		if (column < 0 || column >= numCols) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
+
+	public boolean pickupChip(int column) {
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
 		}
-		return lowestEmptyRows[column];
-	}
-	
-	public void dropChip(Cell cell, int column) {
-		if (cell == Cell.EMPTY) {
-			throw new IllegalArgumentException("An empty chip cannot be dropped into the board.");
+		int row = lowestEmptyRows[column];
+		if (row == numRows - 1) {
+			return false;
 		}
-		if (column < 0 || column >= numCols) {
-			throw new IllegalArgumentException("Column value is out of board boundaries.");
-		}
-		setLowestEmptyRow(cell, column);
+		board[lowestEmptyRows[column] + 1][column] = Cell.EMPTY;
+		lowestEmptyRows[column]++;
+		return true;
 	}
 	
 	public boolean hasConnectFour() {
 		return (hasConnectFourHorizontal() || hasConnectFourVertical() ||
 				hasConnectFourPositiveDiagonal() || hasConnectFourNegativeDiagonal()
 		);
+	}
+
+	public int getLowestEmptyRow(int column) {
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
+		}
+		return lowestEmptyRows[column];
+	}
+
+	public boolean isColumnEmpty(int column) {
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
+		}
+		return lowestEmptyRows[column] == numRows;
+	}
+
+	public boolean isColumnFull(int column) {
+		if (!isColumnInBounds(column)) {
+			throw new ColumnOutOfBoundsException(COLUMN_ERROR_MESSAGE);
+		}
+		return lowestEmptyRows[column] == -1;
+	}
+
+	public int countEmptyCells() {
+		return numEmptyCells;
+	}
+
+	public int countFilledCells() {
+		return (numRows * numCols) - numEmptyCells;
 	}
 	
 	public int getMatchLength() {
@@ -203,5 +253,13 @@ public class Board {
 			}
 		}
 		return false;
+	}
+
+	private boolean isRowInBounds(int row) {
+		return row >= 0 && row < numRows;
+	}
+
+	private boolean isColumnInBounds(int column) {
+		return column >= 0 && column < numCols;
 	}
 }

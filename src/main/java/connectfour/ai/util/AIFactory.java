@@ -4,21 +4,28 @@ import java.util.*;
 import connectfour.ai.*;
 
 public class AIFactory {
-	private static final AbstractMap<String, AISupplier> suppliers = new HashMap<>();
+	private final AbstractMap<String, AISupplier> suppliers;
 
-	static {
+	public AIFactory() {
+		suppliers = new HashMap<>();
+	}
+
+	public static AIFactory getDefaultFactory() {
 		AISupplier[] supplierArray = new AISupplier[]{
 			new BlockerAISupplier(),
 			new NextColumnAISupplier(),
-			new RandomAISupplier()
+			new RandomAISupplier(),
+			//new MinMaxAISupplier()
 		};
 
+		AIFactory factory = new AIFactory();
 		for (AISupplier supplier : supplierArray) {
-			suppliers.put(supplier.getAIName(), supplier);
+			factory.suppliers.put(supplier.getAIName(), supplier);
 		}
+		return factory;
 	}
 	
-	public static void registerSupplier(String name, AISupplier supplier) throws AIFactoryException {
+	public void registerSupplier(String name, AISupplier supplier) throws AIFactoryException {
 		if (name == null) {
 			throw new AIFactoryException(
 				"A supplier cannot have a name that is a null value."
@@ -37,7 +44,7 @@ public class AIFactory {
 		suppliers.put(name, supplier);
 	}
 	
-	public static void unregisterSupplier(String name) throws AIFactoryException {
+	public void unregisterSupplier(String name) throws AIFactoryException {
 		if (name == null) {
 			throw new AIFactoryException(
 				"A supplier cannot have a name that is a null value."
@@ -51,14 +58,14 @@ public class AIFactory {
 		suppliers.remove(name);
 	}
 	
-	public static AbstractList<String> getRegisteredNames() {
+	public AbstractList<String> getRegisteredNames() {
 		ArrayList<String> names = new ArrayList<>(suppliers.keySet());
 		names.sort((String s1, String s2) -> s1.compareTo(s2));
 		names.sort((String s1, String s2) -> (s1.toLowerCase()).compareTo(s2.toLowerCase()));
 		return names;
 	}
 	
-	public static AbstractAI getAI(String name) throws AIFactoryException {
+	public AbstractAI getAI(String name) throws AIFactoryException {
 		if (name == null) {
 			throw new AIFactoryException(
 				"A supplier cannot have a name that is a null value."
@@ -70,5 +77,9 @@ public class AIFactory {
 			);
 		}
 		return suppliers.get(name).get();
+	}
+
+	public int size() {
+		return suppliers.size();
 	}
 }
