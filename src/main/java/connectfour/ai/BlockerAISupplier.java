@@ -16,8 +16,9 @@ public class BlockerAISupplier implements AISupplier {
 
 	@Override
 	public String getAIDescription() {
-		return "Attempts to block every possible match that the opponent makes trying its best to"
-			+ " not make moves that would let the opponent win.";
+		return (
+			"Attempts to block every possible match that the opponent makes trying its best to " +
+			"not make moves that would let the opponent win."
+		);
 	}
-
 }

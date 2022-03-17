@@ -1,9 +1,12 @@
 package connectfour.gui;
 
-import connectfour.core.*;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
+
+import connectfour.core.*;
+import connectfour.ConnectFour;
+import connectfour.ai.HumanPlayer;
 
 public class ConnectFourPanel extends JPanel {
 	private static final String PLAYER1_NAME_STR = "[Player 1] Red";
@@ -42,10 +45,12 @@ public class ConnectFourPanel extends JPanel {
 	private JButton closeButton;
 	
 	private MouseAdapter mouseInput;
+
+	// Game control
+	private GameController gameController;
+	private int gameTurnNumber;
 	
-	private GameController controller;
-	
-	public ConnectFourPanel(JFrame root, GameController gameControl) {
+	public ConnectFourPanel(JFrame root, GameController controller) {
 		super();
 		
 		this.rootWindow = root;
@@ -125,61 +130,23 @@ public class ConnectFourPanel extends JPanel {
 		);
 		
 		// Setup for connect four game mechanics
-		controller = gameControl;
+		this.gameController = controller;
+		this.gameTurnNumber = 0;
 		
-		mouseInput = new MouseAdapter() {
+		this.mouseInput = new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent event) {
-				int column = gameCanvas.getHoverColumn();
-				if (column == -1) {
-					return;
-				}
-				
-				if (controller.getGameState().isRedTurn()) {
-					((Player)controller.getRedPlayer()).setNextMove(column);
-				} else {
-					((Player)controller.getYellowPlayer()).setNextMove(column);
-				}
-				
-				controller.addGameState();
-				controller.moveForwards();
-				
-				gameCanvas.updateModel(controller.getGameState().getBoard());
-				gameCanvas.repaint();
-				
-				gameStateLabel.setText(controller.getStateString());
-				gameMessageLabel.setText(controller.getMessageString());
-				
-				// Check if next turn is a human
-				if (controller.isNextTurnHuman()) {
-					if (controller.getGameState().isRedTurn()) {
-						gameCanvas.setHoverColor(Cell.RED);
-					} else {
-						gameCanvas.setHoverColor(Cell.YELLOW);
-					}
-					return;
-				}
-				
-				gameCanvas.allowHover(false);
-				gameCanvas.removeMouseListener(mouseInput);
+				GameController that = ConnectFourPanel.this.gameController;
+
+				// TODO: implement human interaction
 			}
 		};
-		
-		gameCanvas.updateModel(controller.getGameState().getBoard());
-		gameCanvas.repaint();
-		
-		gameStateLabel.setText(controller.getStateString());
-		gameMessageLabel.setText(controller.getMessageString());
-		
-		if (controller.getCurrentState() == controller.getTotalState() &&
-			controller.isNextTurnHuman()) {
-			if (controller.getGameState().isRedTurn()) {
-				gameCanvas.setHoverColor(Cell.RED);
-			} else {
-				gameCanvas.setHoverColor(Cell.YELLOW);
-			}
-			gameCanvas.allowHover(true);
-			gameCanvas.addMouseListener(mouseInput);
+
+		updateGameCanvas(0);
+		updateStateMessages(0);
+
+		if (this.gameController.getPlayerAtTurn(0).isHumanPlayer()) {
+			addMouseInput();
 		}
 	}
 	
@@ -219,13 +186,15 @@ public class ConnectFourPanel extends JPanel {
 		this.prevAllButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				controller.moveToStart();
-					
-				gameCanvas.updateModel(controller.getGameState().getBoard());
-				gameCanvas.repaint();
-				
-				gameStateLabel.setText(controller.getStateString());
-				gameMessageLabel.setText(controller.getMessageString());
+				ConnectFourPanel that = ConnectFourPanel.this;
+
+				if (that.gameTurnNumber == 0) {
+					return;
+				}
+
+				that.gameTurnNumber = 0;
+				that.updateGameCanvas(that.gameTurnNumber);
+				that.updateStateMessages(that.gameTurnNumber);
 			}
 		});
 		root.add(this.prevAllButton);
@@ -234,52 +203,46 @@ public class ConnectFourPanel extends JPanel {
 		this.prevButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent event) {
-				if (controller.getCurrentState() == 0) {
+				ConnectFourPanel that = ConnectFourPanel.this;
+
+				if (that.gameTurnNumber == 0) {
 					return;
 				}
-				
-				controller.moveBackwards();
-				
-				gameCanvas.updateModel(controller.getGameState().getBoard());
-				gameCanvas.repaint();
-				
-				gameStateLabel.setText(controller.getStateString());
-				gameMessageLabel.setText(controller.getMessageString());
+
+				that.gameTurnNumber--;
+				that.updateGameCanvas(that.gameTurnNumber);
+				that.updateStateMessages(that.gameTurnNumber);
 			}
 		});
 		root.add(this.prevButton);
 		
 		this.nextButton = new JButton(NEXT_STR);
 		this.nextButton.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (gameCanvas.canHover()) {
-					return;
-				}
-				
-				if (controller.getCurrentState() == controller.getTotalState() && 
-					!controller.addGameState()) {
-					return;
-				}
-				
-				controller.moveForwards();
-				
-				gameCanvas.updateModel(controller.getGameState().getBoard());
-				gameCanvas.repaint();
-				
-				gameStateLabel.setText(controller.getStateString());
-				gameMessageLabel.setText(controller.getMessageString());
-				
-				// Check if human interaction is needed to progress to the next state
-				if (controller.getCurrentState() == controller.getTotalState() &&
-					controller.isNextTurnHuman()) {
-					if (controller.getGameState().isRedTurn()) {
-						gameCanvas.setHoverColor(Cell.RED);
-					} else {
-						gameCanvas.setHoverColor(Cell.YELLOW);
+			@Override
+			public void actionPerformed(ActionEvent event) {
+				// TODO: implement human player
+				ConnectFourPanel that = ConnectFourPanel.this;
+
+				if (that.gameTurnNumber == that.gameController.getTotalTurns()) {
+					if (that.gameController.isGameCompleted()) {
+						return;
 					}
-					gameCanvas.allowHover(true);
-					gameCanvas.addMouseListener(mouseInput);
+
+					// Make new move to forward game (assumming computer player)
+					try {
+						that.gameController.moveForward();
+					} catch (ConnectFourException exception) {
+						// TODO: Propagate exception elsewhere
+						that.updateGameCanvas(that.gameTurnNumber);
+						that.updateStateMessages(that.gameTurnNumber);
+						return;
+					}
+					
 				}
+
+				that.gameTurnNumber++;
+				that.updateGameCanvas(that.gameTurnNumber);
+				that.updateStateMessages(that.gameTurnNumber);
 			}
 		});
 		root.add(this.nextButton);
@@ -287,31 +250,33 @@ public class ConnectFourPanel extends JPanel {
 		this.nextAllButton = new JButton(NEXT_ALL_STR);
 		this.nextAllButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				controller.moveToEnd();
-					
-				while (controller.isNextTurnAI()) {
-					controller.addGameState();
-					controller.moveForwards();
+			public void actionPerformed(ActionEvent event) {
+				// TODO: Implement human player
+				ConnectFourPanel that = ConnectFourPanel.this;
+				
+				if (that.gameTurnNumber == that.gameController.getTotalTurns() &&
+					that.gameController.isGameCompleted()) {
+					return;
 				}
+
+				that.gameTurnNumber = that.gameController.getTotalTurns();
 				
-				gameCanvas.updateModel(controller.getGameState().getBoard());
-				gameCanvas.repaint();
-				
-				gameStateLabel.setText(controller.getStateString());
-				gameMessageLabel.setText(controller.getMessageString());
-				
-				// Check if human interaction is needed to progress to the next state
-				if (controller.getCurrentState() == controller.getTotalState() &&
-					controller.isNextTurnHuman()) {
-					if (controller.getGameState().isRedTurn()) {
-						gameCanvas.setHoverColor(Cell.RED);
-					} else {
-						gameCanvas.setHoverColor(Cell.YELLOW);
+				// Assumming computer players only, fast forward the game
+				while (!that.gameController.isGameCompleted()) {
+					try {
+						that.gameController.moveForward();
+					} catch(ConnectFourException exception) {
+						// TODO: Propagate exception elsewhere
+						that.updateGameCanvas(that.gameTurnNumber);
+						that.updateStateMessages(that.gameTurnNumber);
+						return;
 					}
-					gameCanvas.allowHover(true);
-					gameCanvas.addMouseListener(mouseInput);
+
+					that.gameTurnNumber++;
 				}
+
+				that.updateGameCanvas(that.gameTurnNumber);
+				that.updateStateMessages(that.gameTurnNumber);
 			}
 		});
 		root.add(this.nextAllButton);
@@ -491,8 +456,12 @@ public class ConnectFourPanel extends JPanel {
 		this.closeButton = new JButton(CLOSE_STR);
 		this.closeButton.addActionListener(new ActionListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				JTabbedPane tabbedPane = (JTabbedPane)rootWindow.getContentPane().getComponent(0);
+			public void actionPerformed(ActionEvent event) {
+				ConnectFourPanel that = ConnectFourPanel.this;
+
+				Container contentPane = that.rootWindow.getContentPane();
+				JTabbedPane tabbedPane = (JTabbedPane)contentPane.getComponent(0);
+
 				tabbedPane.removeTabAt(tabbedPane.getSelectedIndex());
 			}
 		});
@@ -518,5 +487,33 @@ public class ConnectFourPanel extends JPanel {
 		);
 		
 		this.closePanel = root;
+	}
+
+	private void updateGameCanvas(int turnNumber) {
+		this.gameCanvas.updateModel(this.gameController.getStateAtTurn(turnNumber).getBoard());
+		this.gameCanvas.repaint();
+	}
+
+	private void updateStateMessages(int turnNumber) {
+		this.gameStateLabel.setText(this.gameController.getStateStringAtTurn(turnNumber));
+		this.gameMessageLabel.setText(this.gameController.getMessageStringAtTurn(turnNumber));
+	}
+
+	private void addMouseInput() {
+		Player player = this.gameController.getPlayerAtTurn(this.gameTurnNumber);
+		this.gameCanvas.setHoverColor(player.getCell());
+		this.gameCanvas.allowHover(true);
+		this.gameCanvas.addMouseListener(this.mouseInput);
+		System.out.println(_i + ". Mouse added");
+		_i++;
+	}
+
+	private int _i = 0;
+
+	private void removeMouseInput() {
+		this.gameCanvas.allowHover(false);
+		this.gameCanvas.removeMouseListener(this.mouseInput);
+		System.out.println(_i + ". Mouse removed");
+		_i++;
 	}
 }

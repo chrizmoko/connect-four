@@ -1,6 +1,6 @@
 package connectfour.core;
 
-public class ColumnOutOfBoundsException extends ConnectFourException {
+public class ColumnOutOfBoundsException extends ConnectFourRuntimeException {
     public ColumnOutOfBoundsException() {
         super();
     }

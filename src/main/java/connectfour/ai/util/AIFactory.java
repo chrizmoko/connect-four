@@ -12,6 +12,8 @@ public class AIFactory {
 
 	public static AIFactory getDefaultFactory() {
 		AISupplier[] supplierArray = new AISupplier[]{
+			new HumanPlayerSupplier(),
+			
 			new BlockerAISupplier(),
 			new NextColumnAISupplier(),
 			new RandomAISupplier(),

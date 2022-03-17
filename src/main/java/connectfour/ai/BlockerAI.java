@@ -68,8 +68,8 @@ public class BlockerAI extends AbstractAI {
 	
 	private void rateHorizontal(GameState state, int[][] output) {
 		Board board = state.getBoard();
-		Cell player = (state.isRedTurn()) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.isRedTurn()) ? Cell.YELLOW : Cell.RED;
+		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
+		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
 		
 		for (int r = 0; r < board.getNumRows(); r++) {
 			for (int c = 0; c < board.getNumColumns() - board.getMatchLength() + 1; c++) {
@@ -101,8 +101,8 @@ public class BlockerAI extends AbstractAI {
 	
 	private void rateVertical(GameState state, int[][] output) {
 		Board board = state.getBoard();
-		Cell player = (state.isRedTurn()) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.isRedTurn()) ? Cell.YELLOW : Cell.RED;
+		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
+		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
 		
 		for (int c = 0; c < board.getNumColumns(); c++) {
 			for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
@@ -134,8 +134,8 @@ public class BlockerAI extends AbstractAI {
 	
 	private void ratePositiveDiagonal(GameState state, int[][] output) {
 		Board board = state.getBoard();
-		Cell player = (state.isRedTurn()) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.isRedTurn()) ? Cell.YELLOW : Cell.RED;
+		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
+		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
 		
 		for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
 			for (int c = 0; c < board.getNumColumns() - board.getMatchLength() + 1; c++) {
@@ -167,8 +167,8 @@ public class BlockerAI extends AbstractAI {
 	
 	private void rateNegativeDiagonal(GameState state, int[][] output) {
 		Board board = state.getBoard();
-		Cell player = (state.isRedTurn()) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.isRedTurn()) ? Cell.YELLOW : Cell.RED;
+		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
+		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
 		
 		for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
 			for (int c = board.getMatchLength() - 1; c < board.getNumColumns(); c++) {

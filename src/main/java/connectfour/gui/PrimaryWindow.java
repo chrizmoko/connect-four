@@ -64,7 +64,6 @@ public class PrimaryWindow {
 
 	public void setAiFactory(AIFactory factory) {
 		Vector<String> playerNames = new Vector<>(factory.getRegisteredNames());
-		playerNames.insertElementAt(Player.getName(), 0);
 
 		this.player1NameComboBox.setModel(new DefaultComboBoxModel<String>(playerNames));
 		this.player2NameComboBox.setModel(new DefaultComboBoxModel<String>(playerNames));
@@ -99,29 +98,30 @@ public class PrimaryWindow {
 			@Override
 			public void actionPerformed(ActionEvent event) {
 				// Grab the selected player names for the game
-				String player1 = (String)player1NameComboBox.getSelectedItem();
-				String player2 = (String)player2NameComboBox.getSelectedItem();
+				String player1Name = (String)player1NameComboBox.getSelectedItem();
+				String player2Name = (String)player2NameComboBox.getSelectedItem();
 
 				// Create game controller and connect four game panel
-				AbstractAI playerRed;
+				AbstractAI player1AI = null;
+				AbstractAI player2AI = null;
 				try {
-					playerRed = aiFactory.getAI(player1);
+					player1AI = aiFactory.getAI(player1Name);
+					player2AI = aiFactory.getAI(player2Name);
 				} catch (AIFactoryException e) {
-					playerRed = new Player();
+					return;
 				}
 
-				AbstractAI playerYellow;
-				try {
-					playerYellow = aiFactory.getAI(player2);
-				} catch (AIFactoryException e) {
-					playerYellow = new Player();
-				}
+				Board board = new Board();
+				Player[] players = {
+					new Player(player1AI, Cell.RED),
+					new Player(player2AI, Cell.YELLOW)
+				};
 
-				GameController controller = new GameController(playerRed, playerYellow);
+				GameController controller = new GameController(board, players);
 				ConnectFourPanel connectFourPanel = new ConnectFourPanel(window, controller);
 
-				connectFourPanel.setPlayer1TypeText(player1);
-				connectFourPanel.setPlayer2TypeText(player2);
+				connectFourPanel.setPlayer1TypeText(player1Name);
+				connectFourPanel.setPlayer2TypeText(player2Name);
 
 				// Create a new tab for the game
 				tabbedPane.add(GAME_PREFIX_STR + numGames, connectFourPanel);

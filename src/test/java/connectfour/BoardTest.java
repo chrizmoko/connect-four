@@ -6,7 +6,6 @@ import connectfour.core.Cell;
 import junit.framework.TestCase;
 
 public final class BoardTest extends TestCase {
-
     public void testDefaultBoardDimensions() {
         Board board = new Board();
 
@@ -81,69 +80,42 @@ public final class BoardTest extends TestCase {
         }
     }
 
-    public void testCountCells1() {
-        Board board = new Board(3, 4, 1);
+    public void testBoardCopy() {
+        Board board = new Board();
+        Board boardCopy = new Board(board);
 
-        assertTrue(board.countEmptyCells() == 12);
-        assertTrue(board.countFilledCells() == 0);
+        boardCopy.setCellAt(Cell.RED, 0, 0);
+
+        assertTrue(board.getCellAt(0, 0) == Cell.EMPTY);
+        assertTrue(boardCopy.getCellAt(0, 0) == Cell.RED);
     }
 
-    public void testCountCells2() {
-        Cell[][] cells = {
-            {Cell.RED, Cell.EMPTY, Cell.YELLOW},
-            {Cell.EMPTY, Cell.EMPTY, Cell.EMPTY}
-        };
-        Board board = new Board(cells.length, cells[0].length, 1);
+    public void testIsColumnFull1() {
+        Board board = new Board(2, 1, 1);
+        board.dropChip(Cell.RED, 0);
+        board.dropChip(Cell.RED, 0);
 
-        for (int r = 0; r < board.getNumRows(); r++) {
-            for (int c = 0; c < board.getNumColumns(); c++) {
-                board.setCellAt(cells[r][c], r, c);
-            }
-        }
-
-        assertTrue(board.countEmptyCells() == 4);
-        assertTrue(board.countFilledCells() == 2);
+        assertTrue(board.isColumnFull(0));
     }
 
-    public void testCountCellsWithBoardChanges1() {
-        Cell[][] cells = {
-            {Cell.RED, Cell.EMPTY, Cell.YELLOW},
-            {Cell.EMPTY, Cell.EMPTY, Cell.EMPTY}
-        };
-        Board board = new Board(cells.length, cells[0].length, 1);
+    public void testIsColumnFull2() {
+        Board board = new Board(2, 1, 1);
+        board.dropChip(Cell.RED, 0);
 
-        for (int r = 0; r < board.getNumRows(); r++) {
-            for (int c = 0; c < board.getNumColumns(); c++) {
-                board.setCellAt(cells[r][c], r, c);
-            }
-        }
-
-        board.setCellAt(Cell.EMPTY, 0, 0);
-        board.setCellAt(Cell.RED, 0, 2);
-
-        assertTrue(board.countEmptyCells() == 5);
-        assertTrue(board.countFilledCells() == 1);
+        assertTrue(!board.isColumnFull(0));
     }
 
-    public void testCountCellsWithBoardChanges2() {
-        Cell[][] cells = {
-            {Cell.RED, Cell.EMPTY, Cell.YELLOW},
-            {Cell.EMPTY, Cell.EMPTY, Cell.EMPTY}
-        };
-        Board board = new Board(cells.length, cells[0].length, 1);
+    public void testIsColumnEmpty1() {
+        Board board = new Board(2, 1, 1);
 
-        for (int r = 0; r < board.getNumRows(); r++) {
-            for (int c = 0; c < board.getNumColumns(); c++) {
-                board.setCellAt(cells[r][c], r, c);
-            }
-        }
+        assertTrue(board.isColumnEmpty(0));
+    }
 
-        board.setCellAt(Cell.YELLOW, 1, 0);
-        board.setCellAt(Cell.EMPTY, 0, 1);
-        board.setCellAt(Cell.RED, 1, 0);
+    public void testIsColumnEmpty2() {
+        Board board = new Board(2, 1, 1);
+        board.dropChip(Cell.RED, 0);
 
-        assertTrue(board.countEmptyCells() == 3);
-        assertTrue(board.countFilledCells() == 3);
+        assertTrue(!board.isColumnEmpty(0));
     }
 
     public void testDropChip1() {
@@ -189,5 +161,64 @@ public final class BoardTest extends TestCase {
         board.dropChip(Cell.RED, 0);
 
         assertTrue(!board.dropChip(Cell.YELLOW, 0));
+    }
+
+    public void testPickupChip1() {
+        Board board = new Board(3, 1, 1);
+
+        assertTrue(!board.pickupChip(0));
+    }
+
+    public void testPickupChip2() {
+        Board board = new Board(3, 1, 1);
+        board.dropChip(Cell.RED, 0);
+        board.dropChip(Cell.YELLOW, 0);
+
+        assertTrue(board.pickupChip(0));
+        assertTrue(board.getCellAt(0, 0) == Cell.EMPTY);
+        assertTrue(board.getCellAt(1, 0) == Cell.EMPTY);
+        assertTrue(board.getCellAt(2, 0) == Cell.RED);
+    }
+
+    public void testLowestEmptyRow1() {
+        Board board = new Board(5, 1, 1);
+
+        assertTrue(board.getLowestEmptyRow(0) == 4);
+    }
+
+    public void testLowestEmptyRow2() {
+        Board board = new Board(5, 1, 1);
+        for (int i = 0; i < board.getNumRows(); i++) {
+            board.dropChip(Cell.RED, 0);
+        }
+
+        assertTrue(board.getLowestEmptyRow(0) == -1);
+    }
+
+    public void testLowestEmptyRow3() {
+        Board board = new Board(5, 1, 1);
+        for (int i = 0; i < 3; i++) {
+            board.dropChip(Cell.RED, 0);
+        }
+
+        assertTrue(board.getLowestEmptyRow(0) == 1);
+    }
+
+    public void testHasDraw() {
+        Cell[][] cells = {
+            {Cell.RED, Cell.YELLOW, Cell.RED},
+            {Cell.YELLOW, Cell.RED, Cell.YELLOW},
+            {Cell.YELLOW, Cell.RED, Cell.YELLOW}
+        };
+        Board board = new Board(cells.length, cells[0].length, 3);
+
+        for (int r = 0; r < cells.length; r++) {
+            for (int c = 0; c < cells[0].length; c++) {
+                board.setCellAt(cells[r][c], r, c);
+            }
+        }
+
+        assertTrue(board.hasDraw());
+        assertTrue(!board.hasConnectFour());
     }
 }

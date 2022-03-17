@@ -5,6 +5,7 @@ import connectfour.core.GameState;
 import connectfour.core.Board;
 import connectfour.core.Cell;
 import connectfour.core.ConnectFourException;
+import connectfour.core.ConnectFourRuntimeException;
 
 public class MinMaxAI extends AbstractAI {
 	private int depth;
@@ -21,14 +22,10 @@ public class MinMaxAI extends AbstractAI {
 		// Initial decision (for comparison) for a valid column
 		GameState copy = new GameState(state);
 		int decision = 0;
-		while (true) {
-			try {
-				copy.makeMove(decision);
-				break;
-			} catch (ConnectFourException e) {
-				decision++;
-			}
+		if (copy.getBoard().isColumnFull(decision)) {
+			decision++;
 		}
+		copy.makeMove(decision);
 		
 		// From the result of the initial comparison value, find the best move
 		int maxValue = minmax(copy, depth, true);
@@ -37,7 +34,7 @@ public class MinMaxAI extends AbstractAI {
 			
 			try {
 				copy.makeMove(i);
-			} catch (ConnectFourException e) {
+			} catch (ConnectFourRuntimeException e) {
 				continue;
 			}
 			
@@ -52,10 +49,10 @@ public class MinMaxAI extends AbstractAI {
 	}
 	
 	private int minmax(GameState state, int depth, boolean maximize) {
-		if (depth == 0 || state.isGameOver()) {
+		if (depth == 0 || state.isGameCompleted()) {
 			// Calculate the heuristic of the current board
-			Cell player = (state.isRedTurn()) ? Cell.RED : Cell.YELLOW;
-			Cell opponent = (state.isRedTurn()) ? Cell.YELLOW : Cell.RED;
+			Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
+			Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
 			
 			return heuristic(state.getBoard(), player, opponent);
 		}
@@ -68,7 +65,7 @@ public class MinMaxAI extends AbstractAI {
 				
 				try {
 					copy.makeMove(c);
-				} catch (ConnectFourException e) {
+				} catch (ConnectFourRuntimeException e) {
 					continue;
 				}
 				
@@ -86,7 +83,7 @@ public class MinMaxAI extends AbstractAI {
 				
 				try {
 					copy.makeMove(c);
-				} catch (ConnectFourException e) {
+				} catch (ConnectFourRuntimeException e) {
 					continue;
 				}
 				
