@@ -1,6 +1,8 @@
 package connectfour;
 
-import connectfour.gui.*;
+import connectfour.ai.util.AIFactory;
+import connectfour.core.ConnectFourException;
+import connectfour.gui.PrimaryWindow;
 
 public class ConnectFour {
 	private static final String WINDOW_TITLE = "Connect Four";
@@ -13,7 +15,12 @@ public class ConnectFour {
 		window = new PrimaryWindow(WINDOW_TITLE, WINDOW_WIDTH, WINDOW_HEIGHT);
 	}
 
-	public void run() throws Exception {
+	public ConnectFour(AIFactory aiFactory) {
+		this();
+		window.setAiFactory(aiFactory);
+	}
+
+	public void run() throws ConnectFourException {
 		window.setVisible(true);
 	}
 }

@@ -5,7 +5,6 @@ import java.awt.event.*;
 import javax.swing.*;
 
 import connectfour.core.*;
-import connectfour.ConnectFour;
 import connectfour.ai.HumanPlayer;
 
 public class ConnectFourPanel extends JPanel {
@@ -136,9 +135,40 @@ public class ConnectFourPanel extends JPanel {
 		this.mouseInput = new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent event) {
-				GameController that = ConnectFourPanel.this.gameController;
+				ConnectFourPanel that = ConnectFourPanel.this;
 
-				// TODO: implement human interaction
+				Player player = that.gameController.getPlayerAtTurn(that.gameTurnNumber);
+				HumanPlayer ai = (HumanPlayer)player.getAI();
+
+				try {
+					ai.setNextMove(that.gameCanvas.getHoverColumn());
+
+					if (that.gameTurnNumber == that.gameController.getTotalTurns()) {
+						that.gameController.moveForward();
+					} else {
+						that.gameController.moveForwardFrom(that.gameTurnNumber);
+						that.gameTurnNumber = that.gameController.getTotalTurns() - 1;
+					}
+				} catch (ConnectFourException exception) {
+					// TODO: Propagate exception elsewhere
+					System.out.println("HERE EXCEPTION");
+					exception.printStackTrace(System.err);
+					// that.updateGameCanvas(that.gameTurnNumber);
+					// that.updateStateMessages(that.gameTurnNumber);
+					return;
+				}
+
+				
+				that.gameTurnNumber++;
+				that.updateGameCanvas(that.gameTurnNumber);
+				that.updateStateMessages(that.gameTurnNumber);
+
+				that.removeMouseInput();
+				if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer() &&
+					!that.gameController.isGameCompleted() &&
+					that.gameTurnNumber == that.gameController.getTotalTurns()) {
+					that.addMouseInput();
+				}
 			}
 		};
 
@@ -188,6 +218,8 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				ConnectFourPanel that = ConnectFourPanel.this;
 
+				that.removeMouseInput();
+
 				if (that.gameTurnNumber == 0) {
 					return;
 				}
@@ -195,6 +227,10 @@ public class ConnectFourPanel extends JPanel {
 				that.gameTurnNumber = 0;
 				that.updateGameCanvas(that.gameTurnNumber);
 				that.updateStateMessages(that.gameTurnNumber);
+
+				if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer()) {
+					that.addMouseInput();
+				}
 			}
 		});
 		root.add(this.prevAllButton);
@@ -205,6 +241,8 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				ConnectFourPanel that = ConnectFourPanel.this;
 
+				that.removeMouseInput();
+
 				if (that.gameTurnNumber == 0) {
 					return;
 				}
@@ -212,6 +250,10 @@ public class ConnectFourPanel extends JPanel {
 				that.gameTurnNumber--;
 				that.updateGameCanvas(that.gameTurnNumber);
 				that.updateStateMessages(that.gameTurnNumber);
+
+				if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer()) {
+					that.addMouseInput();
+				}
 			}
 		});
 		root.add(this.prevButton);
@@ -223,12 +265,19 @@ public class ConnectFourPanel extends JPanel {
 				// TODO: implement human player
 				ConnectFourPanel that = ConnectFourPanel.this;
 
+				that.removeMouseInput();
+
 				if (that.gameTurnNumber == that.gameController.getTotalTurns()) {
 					if (that.gameController.isGameCompleted()) {
 						return;
 					}
 
-					// Make new move to forward game (assumming computer player)
+					if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer()) {
+						that.addMouseInput();
+						return;
+					}
+					
+					// Computer player make turn
 					try {
 						that.gameController.moveForward();
 					} catch (ConnectFourException exception) {
@@ -243,6 +292,12 @@ public class ConnectFourPanel extends JPanel {
 				that.gameTurnNumber++;
 				that.updateGameCanvas(that.gameTurnNumber);
 				that.updateStateMessages(that.gameTurnNumber);
+
+				// Check if the next player is human, if so add input from human
+				if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer() &&
+					!that.gameController.isGameCompleted()) {
+					that.addMouseInput();
+				}
 			}
 		});
 		root.add(this.nextButton);
@@ -253,6 +308,8 @@ public class ConnectFourPanel extends JPanel {
 			public void actionPerformed(ActionEvent event) {
 				// TODO: Implement human player
 				ConnectFourPanel that = ConnectFourPanel.this;
+
+				that.removeMouseInput();
 				
 				if (that.gameTurnNumber == that.gameController.getTotalTurns() &&
 					that.gameController.isGameCompleted()) {
@@ -261,8 +318,15 @@ public class ConnectFourPanel extends JPanel {
 
 				that.gameTurnNumber = that.gameController.getTotalTurns();
 				
-				// Assumming computer players only, fast forward the game
+				// Fast forward the game as much as possible
 				while (!that.gameController.isGameCompleted()) {
+					if (that.gameController.getPlayerAtTurn(that.gameTurnNumber).isHumanPlayer()) {
+						that.updateGameCanvas(that.gameTurnNumber);
+						that.updateStateMessages(that.gameTurnNumber);
+						that.addMouseInput();
+						return;
+					}
+
 					try {
 						that.gameController.moveForward();
 					} catch(ConnectFourException exception) {
@@ -504,16 +568,10 @@ public class ConnectFourPanel extends JPanel {
 		this.gameCanvas.setHoverColor(player.getCell());
 		this.gameCanvas.allowHover(true);
 		this.gameCanvas.addMouseListener(this.mouseInput);
-		System.out.println(_i + ". Mouse added");
-		_i++;
 	}
-
-	private int _i = 0;
 
 	private void removeMouseInput() {
 		this.gameCanvas.allowHover(false);
 		this.gameCanvas.removeMouseListener(this.mouseInput);
-		System.out.println(_i + ". Mouse removed");
-		_i++;
 	}
 }

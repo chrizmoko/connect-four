@@ -29,33 +29,23 @@ public class AIFactory {
 	
 	public void registerSupplier(String name, AISupplier supplier) throws AIFactoryException {
 		if (name == null) {
-			throw new AIFactoryException(
-				"A supplier cannot have a name that is a null value."
-			);
+			throw new AIFactoryException("A supplier cannot have a name that is a null value.");
 		}
 		if (supplier == null) {
-			throw new AIFactoryException(
-				"A supplier cannot be a null value."
-			);
+			throw new AIFactoryException("A supplier cannot be a null value.");
 		}
 		if (suppliers.containsKey(name)) {
-			throw new AIFactoryException(
-				"A supplier under the name \"" + name + "\" has already been registered."
-			);
+			throw new AIFactoryException("A supplier named \"" + name + "\" already exists.");
 		}
 		suppliers.put(name, supplier);
 	}
 	
 	public void unregisterSupplier(String name) throws AIFactoryException {
 		if (name == null) {
-			throw new AIFactoryException(
-				"A supplier cannot have a name that is a null value."
-			);
+			throw new AIFactoryException("A supplier cannot have a name that is a null value.");
 		}
 		if (!suppliers.containsKey(name)) {
-			throw new AIFactoryException(
-				"A supplier under the name \"" + name + "\" does not exist."
-			);
+			throw new AIFactoryException("A supplier named \"" + name + "\" does not exist.");
 		}
 		suppliers.remove(name);
 	}
@@ -69,16 +59,22 @@ public class AIFactory {
 	
 	public AbstractAI getAI(String name) throws AIFactoryException {
 		if (name == null) {
-			throw new AIFactoryException(
-				"A supplier cannot have a name that is a null value."
-			);
+			throw new AIFactoryException("A supplier cannot have a name that is a null value.");
 		}
 		if (!suppliers.containsKey(name)) {
-			throw new AIFactoryException(
-				"A supplier under the name \"" + name + "\" does not exist."
-			);
+			throw new AIFactoryException("A supplier named \"" + name + "\" does not exist.");
 		}
 		return suppliers.get(name).get();
+	}
+
+	public AISupplier getSupplier(String name) throws AIFactoryException {
+		if (name == null) {
+			throw new AIFactoryException("A supplier cannot have a name that is a null value.");
+		}
+		if (!suppliers.containsKey(name)) {
+			throw new AIFactoryException("A supplier named \"" + name + "\" does not exist.");
+		}
+		return suppliers.get(name);
 	}
 
 	public int size() {

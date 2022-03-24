@@ -62,6 +62,8 @@ public class GameController {
 		for (int i = columnMoveHistory.size() - 1; i >= turnNumber; i--) {
 			columnMoveHistory.remove(i);
 		}
+		isCompletedByConnectFour = false;
+		isCompletedByDraw = false;
 		moveForward();
 	}
 

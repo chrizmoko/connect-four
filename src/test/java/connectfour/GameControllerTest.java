@@ -158,7 +158,6 @@ public final class GameControllerTest extends TestCase {
         }
 
         assertTrue(controller.getTotalTurns() == 7);
-        
 
         redAi.setNextMove(6);
         controller.moveForwardFrom(4);

@@ -72,7 +72,7 @@ public class PrimaryWindow {
 	}
 
 	public AIFactory getAiFactory() {
-		return aiFactory;
+		return this.aiFactory;
 	}
 
 	private void initSetupPanel() {
