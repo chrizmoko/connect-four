@@ -5,194 +5,159 @@ import connectfour.core.Board;
 import connectfour.core.Cell;
 import connectfour.core.GameState;
 
+import java.util.ArrayList;
+
+/**
+ * The <code>BlockerAI</code> will only play against the opponent, but not for itself. The strategy
+ * of the AI is described below:
+ * <p>
+ * The AI looks at the current <code>Board</code> and will attempt to prevent the opponent from
+ * making a Connect Four match. The AI is not interested in winning; it is only interested in
+ * preventing the opponent from winning.
+ * <p>
+ * For every match that can be made on the board, the AI will add weights for every empty cell
+ * within each possible match. Matches that contain more of the opponent's cells will have more
+ * weight added to empty cells within the match, however the AI will disregard matches that contain
+ * its own cell color since that match is already "blocked" by the AI. After calculating the weights
+ * for every empty cell in the board, the AI will select a column with the largest weight such that
+ * dropping the a chip in the column will not advantage the opponent in the next turn.
+ */
 public class BlockerAI extends AbstractAI {
-	// Strategy of the "Blocker AI"
-	//
-	// The point of the AI is to only prevent the opponent from ever making a valid connect 4 (this
-	// also works for any connect x value) in any direction. This AI does not care about winning,
-	// it only cares about preventing the opponent from winning.
-	//
-	// For any direction that a connect 4 can be made (horizontal, vertical, positive diagonal,
-	// negative diagonal), and for every turn, the AI will only pay attention to any connect 4
-	// combination made from opponent and empty cells ignoring those with the player's cells. The 
-	// more opponent cells in the connect 4 combination, the more weight the empty cells of that 
-	// combiniation will be allotted. There has to be at least one empty cell, otherwise the game
-	// would be over and this would be a moot point.
-	//
-	// Essentially, the AI will ideally drop a chip into an empty position that has the most
-	// weight allotted to it given that making such a move does not makes it too easy for the
-	// opponent gain a connect 4 above it.
-	
 	@Override
 	public int chooseMove(GameState state) {
 		Board board = state.getBoard();
-		int[][] ratings = new int[board.getNumRows()][board.getNumColumns()];
-		
-		// Get ratings in all directions
-		rateHorizontal(state, ratings);
-		rateVertical(state, ratings);
-		ratePositiveDiagonal(state, ratings);
-		rateNegativeDiagonal(state, ratings);
-		
-		// Find the column with the highest rating
-		int decision = 0;
-		for (int i = 0; i < board.getNumColumns(); i++) {
-			if (board.getLowestEmptyRow(i) != -1) {
-				decision = i;
-				break;
+		Cell color = state.getCurrentPlayer().getCell();
+
+		int[][] weights = new int[board.getNumRows()][board.getNumColumns()];
+
+		addHorizontalWeights(color, board, weights);
+		addVerticalWeights(color, board, weights);
+		addPositiveDiagonalWeights(color, board, weights);
+		addNegativeDiagonalWeights(color, board, weights);
+
+		int column = -1;
+		int maxWeight = -1;
+
+		for (int c = 0; c < board.getNumColumns(); c++) {
+			if (board.isColumnFull(c)) {
+				continue;
+			}
+
+			int weight = weights[board.getLowestEmptyRow(c)][c];
+			int weightAbove = 0;
+
+			if (board.isColumnInBounds(board.getLowestEmptyRow(c) - 1)) {
+				weightAbove = weights[board.getLowestEmptyRow(c) - 1][c];
+			}
+
+			if (weight > maxWeight && weight >= weightAbove) {
+				maxWeight = weights[board.getLowestEmptyRow(c)][c];
+				column = c;
 			}
 		}
 
-		int maxRating = ratings[board.getLowestEmptyRow(decision)][decision];
-		for (int i = decision; i < board.getNumColumns(); i++) {
-			if (board.getLowestEmptyRow(i) > -1) {
-				int currentRating = ratings[board.getLowestEmptyRow(i)][i];
-				int aboveRating = 0;
-				if (board.getLowestEmptyRow(i) - 1 > -1) {
-					aboveRating = ratings[board.getLowestEmptyRow(i)-1][i];
-				}
-				
-				if (currentRating > maxRating && currentRating >= aboveRating) {
-					maxRating = ratings[board.getLowestEmptyRow(i)][i];
-					decision = i;
-				}
-			}
-		}
-		
-		return decision;
+		return column;
 	}
 	
-	private int weightAdjustment(int weight) {
+	private static int reweight(int weight) {
 		return weight * weight;
 	}
-	
-	private void rateHorizontal(GameState state, int[][] output) {
-		Board board = state.getBoard();
-		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
-		
+
+	private static void addHorizontalWeights(Cell player, Board board, int[][] weights) {
 		for (int r = 0; r < board.getNumRows(); r++) {
 			for (int c = 0; c < board.getNumColumns() - board.getMatchLength() + 1; c++) {
-				boolean[] empty = new boolean[board.getMatchLength()];
+				ArrayList<Integer> cellsToWeigh = new ArrayList<Integer>(board.getMatchLength());
 				int weight = 0;
-				
+
 				for (int i = 0; i < board.getMatchLength(); i++) {
-					if (board.getCellAt(r, c + i) == player) {
-						weight = 0;
+					Cell cell = board.getCellAt(r, c + i);
+					if (cell == player) {
+						cellsToWeigh.clear();
 						break;
-					} else if (board.getCellAt(r, c + i) == opponent) {
-						weight++;
+					} else if (cell == Cell.EMPTY) {
+						cellsToWeigh.add(i);
 					} else {
-						empty[i] = true;
+						weight++;
 					}
 				}
-				
-				if (weight > 0) {
-					weight = weightAdjustment(weight);
-					for (int i = 0; i < board.getMatchLength(); i++) {
-						if (empty[i]) {
-							output[r][c + i] += weight;
-						}
-					}
+
+				for (int i = 0; i < cellsToWeigh.size(); i++) {
+					weights[r][c + cellsToWeigh.get(i)] += reweight(weight); 
 				}
 			}
 		}
 	}
-	
-	private void rateVertical(GameState state, int[][] output) {
-		Board board = state.getBoard();
-		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
-		
+
+	private static void addVerticalWeights(Cell player, Board board, int[][] weights) {
 		for (int c = 0; c < board.getNumColumns(); c++) {
 			for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
-				boolean[] empty = new boolean[board.getMatchLength()];
+				ArrayList<Integer> cellsToWeigh = new ArrayList<Integer>(board.getMatchLength());
 				int weight = 0;
-				
+
 				for (int i = 0; i < board.getMatchLength(); i++) {
-					if (board.getCellAt(r + i, c) == player) {
-						weight = 0;
+					Cell cell = board.getCellAt(r + i, c);
+					if (cell == player) {
+						cellsToWeigh.clear();
 						break;
-					} else if (board.getCellAt(r + i, c) == opponent) {
-						weight++;
+					} else if (cell == Cell.EMPTY) {
+						cellsToWeigh.add(i);
 					} else {
-						empty[i] = true;
+						weight++;
 					}
 				}
-				
-				if (weight > 0) {
-					weight = weightAdjustment(weight);
-					for (int i = 0; i < board.getMatchLength(); i++) {
-						if (empty[i]) {
-							output[r + i][c] += weight;
-						}
-					}
+
+				for (int i = 0; i < cellsToWeigh.size(); i++) {
+					weights[r + cellsToWeigh.get(i)][c] += reweight(weight);
 				}
 			}
 		}
 	}
-	
-	private void ratePositiveDiagonal(GameState state, int[][] output) {
-		Board board = state.getBoard();
-		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
-		
+
+	private static void addPositiveDiagonalWeights(Cell player, Board board, int[][] weights) {
 		for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
 			for (int c = 0; c < board.getNumColumns() - board.getMatchLength() + 1; c++) {
-				boolean[] empty = new boolean[board.getMatchLength()];
+				ArrayList<Integer> cellsToWeigh = new ArrayList<Integer>(board.getMatchLength());
 				int weight = 0;
 				
 				for (int i = 0; i < board.getMatchLength(); i++) {
-					if (board.getCellAt(r + i, c + i) == player) {
-						weight = 0;
+					Cell cell = board.getCellAt(r + i, c + i);
+					if (cell == player) {
+						cellsToWeigh.clear();
 						break;
-					} else if (board.getCellAt(r + i, c + i) == opponent) {
-						weight++;
+					} else if (cell == Cell.EMPTY) {
+						cellsToWeigh.add(i);
 					} else {
-						empty[i] = true;
+						weight++;
 					}
 				}
-				
-				if (weight > 0) {
-					weight = weightAdjustment(weight);
-					for (int i = 0; i < board.getMatchLength(); i++) {
-						if (empty[i]) {
-							output[r + i][c + i] += weight;
-						}
-					}
+
+				for (int i = 0; i < cellsToWeigh.size(); i++) {
+					weights[r + cellsToWeigh.get(i)][c + cellsToWeigh.get(i)] += reweight(weight);
 				}
 			}
 		}
 	}
-	
-	private void rateNegativeDiagonal(GameState state, int[][] output) {
-		Board board = state.getBoard();
-		Cell player = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.RED : Cell.YELLOW;
-		Cell opponent = (state.getCurrentPlayer().getCell() == Cell.RED) ? Cell.YELLOW : Cell.RED;
-		
+
+	private static void addNegativeDiagonalWeights(Cell player, Board board, int[][] weights) {
 		for (int r = 0; r < board.getNumRows() - board.getMatchLength() + 1; r++) {
 			for (int c = board.getMatchLength() - 1; c < board.getNumColumns(); c++) {
-				boolean[] empty = new boolean[board.getMatchLength()];
+				ArrayList<Integer> cellsToWeigh = new ArrayList<Integer>(board.getMatchLength());
 				int weight = 0;
-				
-				for (int i = 0; i < board.getMatchLength(); i++) {
-					if (board.getCellAt(r + i, c - i) == player) {
-						weight = 0;
+
+				for (int i =0; i < board.getMatchLength(); i++) {
+					Cell cell = board.getCellAt(r + i, c - i);
+					if (cell == player) {
+						cellsToWeigh.clear();
 						break;
-					} else if (board.getCellAt(r + i, c - i) == opponent) {
-						weight++;
+					} else if (cell == Cell.EMPTY) {
+						cellsToWeigh.add(i);
 					} else {
-						empty[i] = true;
+						weight++;
 					}
 				}
-				
-				if (weight > 0) {
-					weight = weightAdjustment(weight);
-					for (int i = 0; i < board.getMatchLength(); i++) {
-						if (empty[i]) {
-							output[r + i][c - i] += weight;
-						}
-					}
+
+				for (int i = 0; i < cellsToWeigh.size(); i++) {
+					weights[r + cellsToWeigh.get(i)][c - cellsToWeigh.get(i)] += reweight(weight);
 				}
 			}
 		}
