@@ -46,7 +46,7 @@ public class GameState {
 
 		board = new Board(baseBoard);
 		players = Arrays.copyOf(basePlayers, basePlayers.length);
-		currentPlayer = players[turnNumber % players.length];
+		currentPlayer = players[baseTurnNumber % players.length];
 		gameCompleted = board.hasConnectFour() || board.hasDraw();
 		turnNumber = baseTurnNumber;
 	}
@@ -163,5 +163,6 @@ public class GameState {
 
 		turnNumber++;
 		currentPlayer = players[turnNumber % players.length];
+		System.out.println("chooseMove() : " + currentPlayer.getCell());
 	}
 }
