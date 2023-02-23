@@ -15,4 +15,25 @@ This is a Connect Four gui application written with `javax.swing` that provides 
 2. To build the project, run Maven with `mvn clean package`.
    - This will provide a clean slate for the target build files.
    - Then this will start building the project.
+   - And run the unit tests.
 3. To start the application, run java on the newly created jar file with the command `java -cp ./target/connect-four.jar connectfour.ConnectFourDriver`.
+
+### Usage
+
+The program will open with a gui to a settings panel where the user can select who will be playing as what. The user can play against AIs or another local user, or have AIs play against each other using the dropdown boxes.
+
+![Connect Four gui on program start.](./readme.images/connectfour_gui1.jpg)
+
+![Connect Four game being played.](./readme.images/connectfour_gui2.jpg)
+
+The user, when playing against an AI, can use the single step arrows to progress the game by advancing the AI (`>`) or undo the game (`<`) and potentially make a different move.
+
+![Connect Four game where a human is playing against an AI using the gui controls.](./readme.images/connectfour_human_ai.gif)
+
+Furthermore, these controls can be used in a game where both players are AIs. Here, the fast step arrows can be used to auto-complete or go back review the move history of the game. The fast step arrow (`>>`) auto-plays the remainder of the game until completion. The fast undo arrow (`<<`) takes the game back to the initial state.
+
+![Connect Four game where both players are AI and is being auto-played using the gui controls.](./readme.images/connectfour_ai.gif)
+
+In addition, multiple games can be played out.
+
+![Connect Four program hosting multiple games.](./readme.images/connectfour_gui3.jpg)
